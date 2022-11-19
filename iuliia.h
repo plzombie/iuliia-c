@@ -69,6 +69,10 @@ extern uint32_t *iuliiaWtoU32(const wchar_t *s);
 extern const uint8_t *iuliiaCharU8toU32(const uint8_t *u8, uint32_t *u32);
 extern uint32_t *iuliiaU8toU32(const uint8_t *u8);
 
+extern uint32_t iuliiaU32ToLower(uint32_t c);
+extern uint32_t iuliiaU32ToUpper(uint32_t c);
+extern int iuliiaU32IsUpper(uint32_t c);
+
 extern uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme);
 
 extern uint32_t *iuliiaTranslateWtoU32(const wchar_t *s, const iuliia_scheme_t *scheme);

@@ -383,6 +383,42 @@ const uint8_t *iuliiaCharU8toU32(const uint8_t *u8, uint32_t *u32)
 				new_u32 += *pu8 & 0x3f;
 				pu8++;
 			} else return 0;
+		} else if((*pu8 & 0xf0) == 0xe0) {
+			new_u32 = (*pu8 & 0xf) << 12;
+			pu8++;
+
+			if(!(*pu8)) return 0;
+			if((*pu8 & 0xc0) == 0x80) {
+				new_u32 += (*pu8 & 0x3f) << 6;
+				pu8++;
+			} else return 0;
+
+			if (!(*pu8)) return 0;
+			if((*pu8 & 0xc0) == 0x80) {
+				new_u32 += *pu8 & 0x3f;
+				pu8++;
+			} else return 0;
+		} else if((*pu8 & 0xf8) == 0xf0) {
+			new_u32 = (*pu8 & 0xf) << 18;
+			pu8++;
+
+			if(!(*pu8)) return 0;
+			if((*pu8 & 0xc0) == 0x80) {
+				new_u32 += (*pu8 & 0x3f) << 12;
+				pu8++;
+			} else return 0;
+
+			if(!(*pu8)) return 0;
+			if((*pu8 & 0xc0) == 0x80) {
+				new_u32 += (*pu8 & 0x3f) << 6;
+				pu8++;
+			} else return 0;
+
+			if (!(*pu8)) return 0;
+			if((*pu8 & 0xc0) == 0x80) {
+				new_u32 += *pu8 & 0x3f;
+				pu8++;
+			} else return 0;
 		} else // TODO: Fix this
 			return 0;
 	} 
@@ -424,6 +460,30 @@ uint32_t *iuliiaU8toU32(const uint8_t *u8)
 	return u32;
 }
 
+uint32_t iuliiaU32ToLower(uint32_t c)
+{
+	if(c < 65536)
+		return towlower(c);
+	else
+		return c;
+}
+
+uint32_t iuliiaU32ToUpper(uint32_t c)
+{
+	if(c < 65536)
+		return towupper(c);
+	else
+		return c;
+}
+
+int iuliiaU32IsUpper(uint32_t c)
+{
+	if(c < 65536)
+		return iswupper(c);
+	else
+		return 0;
+}
+
 uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 {
 	uint32_t *new_s;
@@ -444,11 +504,12 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 				free(new_s);
 				return 0;
 			}
+			new_s = _new_s;
 			new_len += 4;
 		}
 
 		for(i = 0; i < scheme->nof_mapping; i++) {
-			if(scheme->mapping[i].c == towlower(*s)) {
+			if(scheme->mapping[i].c == iuliiaU32ToLower(*s)) {
 				repl = scheme->mapping[i].repl;
 				break;
 			}
@@ -466,10 +527,11 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 						free(new_s);
 						return 0;
 					}
+					new_s = _new_s;
 					new_len += 4;
 				}
-				if(iswupper(*s) && first_char)
-					new_s[new_offset] = towupper(*repl);
+				if(iuliiaU32IsUpper(*s) && first_char)
+					new_s[new_offset] = iuliiaU32ToUpper(*repl);
 				else
 					new_s[new_offset] = *repl;
 				new_offset++;

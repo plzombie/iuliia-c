@@ -1,0 +1,22 @@
+{
+    "name": "smiles",
+    "description": "unicode emoji",
+    "url": "https://unicode-table.com/ru/sets/emoji/",
+    "mapping": {
+        "☹": ":(",
+        "😆": "x)",
+        "😁": ":D",
+        "😂": ";)",
+        "😊": ":)",
+        "☻": ":)"
+    },
+    "prev_mapping": null,
+    "next_mapping": null,
+    "ending_mapping": null,
+    "samples": [
+        [
+            "☹ 😆 😁 😂 😊",
+            ":( x) :D ;) :)"
+        ]
+    ]
+}
