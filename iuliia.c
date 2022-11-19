@@ -42,7 +42,7 @@ static bool iuliiaIntJsonLoadStringW(struct json_value_s *value, wchar_t **str)
 	if(!(*str)) return false;
 	(*str)[val->string_size] = 0;
 
-	MultiByteToWideChar(CP_UTF8, 0, val->string, val->string_size+1, *str, val->string_size+1);
+	MultiByteToWideChar(CP_UTF8, 0, val->string, (int)(val->string_size+1), *str, (int)(val->string_size+1));
 
 	return true;
 }
@@ -51,26 +51,29 @@ static bool iuliiaIntJsonReadMapping1char(struct json_object_s *obj, iuliia_mapp
 {
 	size_t i;
 	struct json_object_element_s *el;
+	iuliia_mapping_1char_t *new_map;
 
-	*map = malloc(obj->length*sizeof(iuliia_mapping_1char_t));
-	if(!(*map)) return false;
-	memset(*map, 0, obj->length*sizeof(iuliia_mapping_1char_t));
+	new_map = malloc(obj->length*sizeof(iuliia_mapping_1char_t));
+	if(!new_map) return false;
+	memset(new_map, 0, obj->length*sizeof(iuliia_mapping_1char_t));
 
 	el = obj->start;
 	for(i = 0; i < obj->length; i++) {
 		const uint8_t *new_c;
 		struct json_string_s *str;
 
-		new_c = iuliiaCharU8toU32(el->name->string, &((*map)[i].c));
+		new_c = iuliiaCharU8toU32(el->name->string, &(new_map[i].c));
 		if(!new_c) return false;
 
 		str = json_value_as_string(el->value);
 		if(!str) return false;
 
-		(*map)[i].repl = iuliiaU8toU32(str->string);
+		new_map[i].repl = iuliiaU8toU32(str->string);
 
 		el = el->next;
 	}
+
+	*map = new_map;
 
 	return true;
 }
@@ -151,7 +154,7 @@ iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length)
 		} else if(!strncmp(el->name->string, "url", el->name->string_size)) {
 			if(!iuliiaIntJsonLoadStringW(el->value, &(scheme->url))) goto IULIIA_ERROR;
 		} else if(!strncmp(el->name->string, "mapping", el->name->string_size)) {
-			struct json_object_s *obj;
+			struct json_object_s* obj;
 
 			obj = json_value_as_object(el->value);
 			if(!obj) goto IULIIA_ERROR;
@@ -190,6 +193,16 @@ void iuliiaFreeScheme(iuliia_scheme_t *scheme)
 	if(scheme->name) free(scheme->name);
 	if(scheme->description) free(scheme->description);
 	if(scheme->url) free(scheme->url);
+
+	if(scheme->nof_mapping) {
+		size_t i;
+
+		for(i = 0; i < scheme->nof_mapping; i++) {
+			if(scheme->mapping[i].repl) free(scheme->mapping[i].repl);
+		}
+
+		free(scheme->mapping);
+	}
 
 	if(scheme->nof_samples) {
 		size_t i;
@@ -387,7 +400,7 @@ uint32_t *iuliiaU8toU32(const uint8_t *u8)
 
 	str_size = strlen(u8);
 
-	u32 = malloc((str_size+1)*sizeof(wchar_t));
+	u32 = malloc((str_size+1)*sizeof(uint32_t));
 
 	pu8 = u8;
 	pu32 = u32;
