@@ -29,7 +29,33 @@ SOFTWARE.
 #include <stdint.h>
 
 typedef struct {
-	void *p;
+	uint32_t c;
+	uint32_t *repl;
+} iuliia_mapping_1char_t;
+
+typedef struct {
+	uint32_t c; // Main characher
+	uint32_t cor_c; // Corresponding characher
+	uint32_t *repl;
+} iuliia_mapping_2char_t;
+
+typedef struct {
+	wchar_t *in;
+	wchar_t *out;
+} iuliia_samples_t;
+
+typedef struct {
+	wchar_t *name;
+	wchar_t *description;
+	wchar_t *url;
+	iuliia_mapping_1char_t *mapping;
+	size_t nof_mapping;
+	iuliia_mapping_2char_t *next_mapping;
+	size_t nof_next_mapping;
+	iuliia_mapping_2char_t *ending_mapping;
+	size_t nof_ending_mapping;
+	iuliia_samples_t *samples;
+	size_t nof_samples;
 } iuliia_scheme_t;
 
 extern iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char* json, size_t json_length);
@@ -40,6 +66,8 @@ extern iuliia_scheme_t *iuliiaLoadSchemeW(wchar_t *filename);
 extern size_t iuliiaU32len(const uint32_t *s);
 extern wchar_t *iuliiaU32toW(const uint32_t *s);
 extern uint32_t *iuliiaWtoU32(const wchar_t *s);
+extern const uint8_t *iuliiaCharU8toU32(const uint8_t *u8, uint32_t *u32);
+extern uint32_t *iuliiaU8toU32(const uint8_t *u8);
 
 extern uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme);
 

@@ -13,6 +13,7 @@ int main(void)
 	iuliia_scheme_t *scheme = 0;
 	wchar_t *new_s;
 	const wchar_t *s = L"Привет, мир!";
+	size_t i;
 
 	setlocale(LC_ALL, "");
 
@@ -29,13 +30,31 @@ int main(void)
 		return 0;
 	}
 
+	if(scheme->name)
+		wprintf(L"Scheme name: %ls\n", scheme->name);
+	if(scheme->description)
+		wprintf(L"Scheme description: %ls\n", scheme->description);
+	if(scheme->url)
+		wprintf(L"Scheme url: %ls\n", scheme->url);
+
 	new_s = iuliiaTranslateW(s, scheme);
 
 	if(new_s) {
 		wprintf(L"Before: %ls\n", s);
 		wprintf(L"After: %ls\n", new_s);
 	} else
-		wprintf(L"Error translating from W to W\n");
+		wprintf(L"Error translating\n");
+
+	for(i = 0; i < scheme->nof_samples; i++) {
+		wprintf(L"Sample %u\n", (unsigned int)i);
+		wprintf(L"Before: %ls\n", scheme->samples[i].in);
+		new_s = iuliiaTranslateW(scheme->samples[i].in, scheme);
+		if(new_s)
+			wprintf(L"After: %ls\n", new_s);
+		else
+			wprintf(L"Error translating\n");
+		wprintf(L"Should be: %ls\n", scheme->samples[i].out);
+	}
 
 	iuliiaFreeScheme(scheme);
 

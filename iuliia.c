@@ -27,13 +27,108 @@ SOFTWARE.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
+#include <Windows.h>
+
+static bool iuliiaIntJsonLoadStringW(struct json_value_s *value, wchar_t **str)
+{
+	struct json_string_s* val;
+
+	val = json_value_as_string(value);
+	if (!val) return false;
+	
+	*str = malloc((val->string_size + 1) * sizeof(wchar_t));
+	if(!(*str)) return false;
+	(*str)[val->string_size] = 0;
+
+	MultiByteToWideChar(CP_UTF8, 0, val->string, val->string_size+1, *str, val->string_size+1);
+
+	return true;
+}
+
+static bool iuliiaIntJsonReadMapping1char(struct json_object_s *obj, iuliia_mapping_1char_t **map)
+{
+	size_t i;
+	struct json_object_element_s *el;
+
+	*map = malloc(obj->length*sizeof(iuliia_mapping_1char_t));
+	if(!(*map)) return false;
+	memset(*map, 0, obj->length*sizeof(iuliia_mapping_1char_t));
+
+	el = obj->start;
+	for(i = 0; i < obj->length; i++) {
+		const uint8_t *new_c;
+		struct json_string_s *str;
+
+		new_c = iuliiaCharU8toU32(el->name->string, &((*map)[i].c));
+		if(!new_c) return false;
+
+		str = json_value_as_string(el->value);
+		if(!str) return false;
+
+		(*map)[i].repl = iuliiaU8toU32(str->string);
+
+		el = el->next;
+	}
+
+	return true;
+}
+
+static bool iuliiaIntJsonReadSamples(struct json_array_s *arr, iuliia_samples_t **samples)
+{
+	iuliia_samples_t *new_samples;
+	struct json_array_element_s * arr_el;
+	size_t i = 0;
+
+	new_samples = malloc(arr->length*sizeof(iuliia_samples_t));
+	if(!new_samples) return false;
+	memset(new_samples, 0, arr->length*sizeof(iuliia_samples_t));
+
+	arr_el = arr->start;
+	while(arr_el) {
+		struct json_array_s *sample;
+		struct json_array_element_s *sample_el;
+		
+		sample = json_value_as_array(arr_el->value);
+		if(!sample) goto IULIIA_ERROR;
+
+		if(sample->length != 2) goto IULIIA_ERROR;
+
+		sample_el = sample->start;
+		if(!iuliiaIntJsonLoadStringW(sample_el->value, &(new_samples[i].in))) goto IULIIA_ERROR;
+		sample_el = sample_el->next;
+		if(!iuliiaIntJsonLoadStringW(sample_el->value, &(new_samples[i].out))) goto IULIIA_ERROR;
+
+		arr_el = arr_el->next;
+		i++;
+	}
+
+	*samples = new_samples;
+
+	return true;
+
+IULIIA_ERROR:
+
+	for(i = 0; i < arr->length; i++) {
+		if(new_samples[i].in) free(new_samples[i].in);
+		if(new_samples[i].out) free(new_samples[i].out);
+	}
+
+	free(new_samples);
+
+	return false;
+}
 
 iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length)
 {
 	iuliia_scheme_t *scheme;
 	struct json_value_s *root = json_parse(json, json_length);
+	struct json_object_s *object;
+	struct json_object_element_s *el;
 
-	if(root->type != json_type_object) {
+	object = json_value_as_object(root);
+	if(!json) {
 		free(root);
 
 		return 0;
@@ -45,15 +140,67 @@ iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length)
 
 		return 0;
 	}
+	memset(scheme, 0, sizeof(iuliia_scheme_t));
+
+	el = object->start;
+	while(el) {
+		if(!strncmp(el->name->string, "name", el->name->string_size)) {
+			if(!iuliiaIntJsonLoadStringW(el->value, &(scheme->name))) goto IULIIA_ERROR;
+		} else if(!strncmp(el->name->string, "description", el->name->string_size)) {
+			if(!iuliiaIntJsonLoadStringW(el->value, &(scheme->description))) goto IULIIA_ERROR;
+		} else if(!strncmp(el->name->string, "url", el->name->string_size)) {
+			if(!iuliiaIntJsonLoadStringW(el->value, &(scheme->url))) goto IULIIA_ERROR;
+		} else if(!strncmp(el->name->string, "mapping", el->name->string_size)) {
+			struct json_object_s *obj;
+
+			obj = json_value_as_object(el->value);
+			if(!obj) goto IULIIA_ERROR;
+			if(!iuliiaIntJsonReadMapping1char(obj, &(scheme->mapping))) goto IULIIA_ERROR;
+			scheme->nof_mapping = obj->length;
+		} else if(!strncmp(el->name->string, "prev_mapping", el->name->string_size)) {
+		} else if(!strncmp(el->name->string, "next_mapping", el->name->string_size)) {
+		} else if(!strncmp(el->name->string, "ending_mapping", el->name->string_size)) {
+		} else if(!strncmp(el->name->string, "samples", el->name->string_size)) {
+			struct json_array_s *arr;
+
+			arr = json_value_as_array(el->value);
+			if(!arr) goto IULIIA_ERROR;
+			if(!iuliiaIntJsonReadSamples(arr, &(scheme->samples))) goto IULIIA_ERROR;
+			scheme->nof_samples = arr->length;
+		}
+
+		el = el->next;
+	}
 
 	free(root);
 
 	return scheme;
+
+IULIIA_ERROR:
+
+	iuliiaFreeScheme(scheme);
+
+	return 0;
 }
 
 void iuliiaFreeScheme(iuliia_scheme_t *scheme)
 {
 	if(!scheme) return;
+
+	if(scheme->name) free(scheme->name);
+	if(scheme->description) free(scheme->description);
+	if(scheme->url) free(scheme->url);
+
+	if(scheme->nof_samples) {
+		size_t i;
+
+		for(i = 0; i < scheme->nof_samples; i++) {
+			free(scheme->samples[i].in);
+			free(scheme->samples[i].out);
+		}
+
+		free(scheme->samples);
+	}
 
 	free(scheme);
 }
@@ -204,18 +351,126 @@ uint32_t *iuliiaWtoU32(const wchar_t *s)
 	return new_s;
 }
 
+const uint8_t *iuliiaCharU8toU32(const uint8_t *u8, uint32_t *u32)
+{
+	uint32_t new_u32 = 0;
+	const uint8_t *pu8;
+	
+	pu8 = u8;
+
+	if(*pu8 < 0x80) {
+		new_u32 = *pu8;
+		pu8++;
+	} else {
+		if((*pu8 & 0xe0) == 0xc0) {
+			new_u32 = (*pu8 & 0x1f) << 6;
+			pu8++;
+			if(!(*pu8)) return 0;
+			if((*pu8 & 0xc0) == 0x80) {
+				new_u32 += *pu8 & 0x3f;
+				pu8++;
+			} else return 0;
+		} else // TODO: Fix this
+			return 0;
+	} 
+
+	*u32 = new_u32;
+
+	return pu8;
+}
+
+uint32_t *iuliiaU8toU32(const uint8_t *u8)
+{
+	const uint8_t *pu8;
+	uint32_t *u32, *pu32;
+	size_t str_size;
+
+	str_size = strlen(u8);
+
+	u32 = malloc((str_size+1)*sizeof(wchar_t));
+
+	pu8 = u8;
+	pu32 = u32;
+	while(1) {
+		bool need_break = false;
+
+		if (*pu8 == 0) need_break = true;
+
+		pu8 = iuliiaCharU8toU32(pu8, pu32);
+		if(!pu8) {
+			free(u32);
+
+			return 0;
+		}
+
+		if(need_break) break;
+
+		pu32++;
+	}
+
+	return u32;
+}
+
 uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 {
-	uint32_t *new_s, *p;
+	uint32_t *new_s;
+	size_t new_len, new_offset = 0;
 
-	new_s = malloc((iuliiaU32len(s)+1)*sizeof(uint32_t));
+	new_len = iuliiaU32len(s);
+	new_s = malloc((new_len+1)*sizeof(uint32_t));
 	if(!new_s) return 0;
 	
-	p = new_s;
 	while(*s) {
-		*(p++) = *(s++);
+		uint32_t *repl = 0;
+		size_t i;
+		if(new_offset == new_len) {
+			uint32_t *_new_s;
+
+			_new_s = realloc(new_s, (new_len+5)*sizeof(uint32_t));
+			if(!_new_s) {
+				free(new_s);
+				return 0;
+			}
+			new_len += 4;
+		}
+
+		for(i = 0; i < scheme->nof_mapping; i++) {
+			if(scheme->mapping[i].c == towlower(*s)) {
+				repl = scheme->mapping[i].repl;
+				break;
+			}
+		}
+
+		if(repl) {
+			bool first_char = true;
+
+			while(*repl) {
+				if(new_offset == new_len) {
+					uint32_t* _new_s;
+
+					_new_s = realloc(new_s, (new_len+5)*sizeof(uint32_t));
+					if(!_new_s) {
+						free(new_s);
+						return 0;
+					}
+					new_len += 4;
+				}
+				if(iswupper(*s) && first_char)
+					new_s[new_offset] = towupper(*repl);
+				else
+					new_s[new_offset] = *repl;
+				new_offset++;
+				repl++;
+				first_char = false;
+			}
+		} else {
+			new_s[new_offset] = *s;
+			new_offset++;
+		}
+
+		s++;
 	}
-	*p = 0;
+	new_s[new_offset] = 0;
 	
 	return new_s;
 }
