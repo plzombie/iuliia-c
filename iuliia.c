@@ -78,6 +78,54 @@ static bool iuliiaIntJsonReadMapping1char(struct json_object_s *obj, iuliia_mapp
 	return true;
 }
 
+static bool iuliiaIntJsonReadMapping2char(struct json_object_s *obj, iuliia_mapping_2char_t **map, bool cor_first)
+{
+	size_t i;
+	struct json_object_element_s *el;
+	iuliia_mapping_2char_t *new_map;
+
+	new_map = malloc(obj->length*sizeof(iuliia_mapping_2char_t));
+	if(!new_map) return false;
+	memset(new_map, 0, obj->length*sizeof(iuliia_mapping_2char_t));
+
+	el = obj->start;
+	for(i = 0; i < obj->length; i++) {
+		uint32_t *in_str;
+		size_t in_str_len;
+		struct json_string_s *str;
+
+		in_str = iuliiaU8toU32(el->name->string);
+		if(!in_str) return false;
+		in_str_len = iuliiaU32len(in_str);
+		if(in_str_len == 1)
+			new_map[i].c = in_str[0];
+		else if(in_str_len == 2) {
+			if(cor_first) {
+				new_map[i].cor_c = in_str[0];
+				new_map[i].c = in_str[1];
+			} else {
+				new_map[i].c = in_str[0];
+				new_map[i].cor_c = in_str[1];
+			}
+		} else {
+			free(in_str);
+			return false;
+		}
+		free(in_str);
+
+		str = json_value_as_string(el->value);
+		if(!str) return false;
+
+		new_map[i].repl = iuliiaU8toU32(str->string);
+
+		el = el->next;
+	}
+
+	*map = new_map;
+
+	return true;
+}
+
 static bool iuliiaIntJsonReadSamples(struct json_array_s *arr, iuliia_samples_t **samples)
 {
 	iuliia_samples_t *new_samples;
@@ -154,22 +202,50 @@ iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length)
 		} else if(!strncmp(el->name->string, "url", el->name->string_size)) {
 			if(!iuliiaIntJsonLoadStringW(el->value, &(scheme->url))) goto IULIIA_ERROR;
 		} else if(!strncmp(el->name->string, "mapping", el->name->string_size)) {
-			struct json_object_s* obj;
+			if(!json_value_is_null(el->value)) {
+				struct json_object_s* obj;
 
-			obj = json_value_as_object(el->value);
-			if(!obj) goto IULIIA_ERROR;
-			if(!iuliiaIntJsonReadMapping1char(obj, &(scheme->mapping))) goto IULIIA_ERROR;
-			scheme->nof_mapping = obj->length;
+				obj = json_value_as_object(el->value);
+				if(!obj) goto IULIIA_ERROR;
+				if(!iuliiaIntJsonReadMapping1char(obj, &(scheme->mapping))) goto IULIIA_ERROR;
+				scheme->nof_mapping = obj->length;
+			}
 		} else if(!strncmp(el->name->string, "prev_mapping", el->name->string_size)) {
-		} else if(!strncmp(el->name->string, "next_mapping", el->name->string_size)) {
-		} else if(!strncmp(el->name->string, "ending_mapping", el->name->string_size)) {
-		} else if(!strncmp(el->name->string, "samples", el->name->string_size)) {
-			struct json_array_s *arr;
+			if(!json_value_is_null(el->value)) {
+				struct json_object_s* obj;
 
-			arr = json_value_as_array(el->value);
-			if(!arr) goto IULIIA_ERROR;
-			if(!iuliiaIntJsonReadSamples(arr, &(scheme->samples))) goto IULIIA_ERROR;
-			scheme->nof_samples = arr->length;
+				obj = json_value_as_object(el->value);
+				if(!obj) goto IULIIA_ERROR;
+				if(!iuliiaIntJsonReadMapping2char(obj, &(scheme->prev_mapping), true)) goto IULIIA_ERROR;
+				scheme->nof_prev_mapping = obj->length;
+			}
+		} else if(!strncmp(el->name->string, "next_mapping", el->name->string_size)) {
+			if(!json_value_is_null(el->value)) {
+				struct json_object_s* obj;
+
+				obj = json_value_as_object(el->value);
+				if(!obj) goto IULIIA_ERROR;
+				if(!iuliiaIntJsonReadMapping2char(obj, &(scheme->next_mapping), false)) goto IULIIA_ERROR;
+				scheme->nof_next_mapping = obj->length;
+			}
+		} else if(!strncmp(el->name->string, "ending_mapping", el->name->string_size)) {
+			if(!json_value_is_null(el->value)) {
+				struct json_object_s* obj;
+
+				obj = json_value_as_object(el->value);
+				if(!obj) goto IULIIA_ERROR;
+				if(!iuliiaIntJsonReadMapping2char(obj, &(scheme->ending_mapping), false)) goto IULIIA_ERROR;
+				scheme->nof_ending_mapping = obj->length;
+			}
+		} else if(!strncmp(el->name->string, "samples", el->name->string_size)) {
+			if(!json_value_is_null(el->value)) {
+				struct json_array_s *arr;
+
+				arr = json_value_as_array(el->value);
+				if(!arr) goto IULIIA_ERROR;
+				if(!iuliiaIntJsonReadSamples(arr, &(scheme->samples))) goto IULIIA_ERROR;
+				scheme->nof_samples = arr->length;
+			}
 		}
 
 		el = el->next;
@@ -484,9 +560,17 @@ int iuliiaU32IsUpper(uint32_t c)
 		return 0;
 }
 
+int iuliiaU32IsBlank(uint32_t c)
+{
+	if(c < 65536)
+		return iswblank(c);
+	else
+		return 0;
+}
+
 uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 {
-	uint32_t *new_s;
+	uint32_t *new_s, prev_s = 0;
 	size_t new_len, new_offset = 0;
 
 	new_len = iuliiaU32len(s);
@@ -508,10 +592,48 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 			new_len += 4;
 		}
 
-		for(i = 0; i < scheme->nof_mapping; i++) {
-			if(scheme->mapping[i].c == iuliiaU32ToLower(*s)) {
-				repl = scheme->mapping[i].repl;
-				break;
+		// Check word ending
+		if(!iuliiaU32IsBlank(*s) && !iuliiaU32IsBlank(*(s+1))
+			&& *(s+1) != 0) {
+			for(i = 0; i < scheme->nof_ending_mapping; i++) {
+				if(scheme->ending_mapping[i].c == iuliiaU32ToLower(*s)
+					&& scheme->ending_mapping[i].cor_c == *(s+1)) {
+					repl = scheme->ending_mapping[i].repl;
+					s++;
+					break;
+				}
+			}
+		}
+
+		// Check previous mapping
+		if(!repl) {
+			for(i = 0; i < scheme->nof_prev_mapping; i++) {
+				if(scheme->prev_mapping[i].c == iuliiaU32ToLower(*s)
+					&& scheme->prev_mapping[i].cor_c == prev_s) {
+					repl = scheme->prev_mapping[i].repl;
+					break;
+				}
+			}
+		}
+
+		// Check next mapping
+		if(!repl) {
+			for(i = 0; i < scheme->nof_next_mapping; i++) {
+				if(scheme->next_mapping[i].c == iuliiaU32ToLower(*s)
+					&& scheme->next_mapping[i].cor_c == *(s+1)) {
+					repl = scheme->next_mapping[i].repl;
+					break;
+				}
+			}
+		}
+
+		// Check direct mapping
+		if(!repl) {
+			for(i = 0; i < scheme->nof_mapping; i++) {
+				if(scheme->mapping[i].c == iuliiaU32ToLower(*s)) {
+					repl = scheme->mapping[i].repl;
+					break;
+				}
 			}
 		}
 
@@ -543,6 +665,8 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 			new_offset++;
 		}
 
+		prev_s = *s;
+		if(iuliiaU32IsBlank(prev_s)) prev_s = 0;
 		s++;
 	}
 	new_s[new_offset] = 0;

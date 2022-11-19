@@ -50,6 +50,8 @@ typedef struct {
 	wchar_t *url;
 	iuliia_mapping_1char_t *mapping;
 	size_t nof_mapping;
+	iuliia_mapping_2char_t* prev_mapping;
+	size_t nof_prev_mapping;
 	iuliia_mapping_2char_t *next_mapping;
 	size_t nof_next_mapping;
 	iuliia_mapping_2char_t *ending_mapping;
@@ -72,6 +74,7 @@ extern uint32_t *iuliiaU8toU32(const uint8_t *u8);
 extern uint32_t iuliiaU32ToLower(uint32_t c);
 extern uint32_t iuliiaU32ToUpper(uint32_t c);
 extern int iuliiaU32IsUpper(uint32_t c);
+extern int iuliiaU32IsBlank(uint32_t c);
 
 extern uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme);
 
