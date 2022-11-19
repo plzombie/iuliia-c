@@ -595,12 +595,15 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 		// Check word ending
 		if(!iuliiaU32IsBlank(*s) && !iuliiaU32IsBlank(*(s+1))
 			&& *(s+1) != 0) {
-			for(i = 0; i < scheme->nof_ending_mapping; i++) {
-				if(scheme->ending_mapping[i].c == iuliiaU32ToLower(*s)
-					&& scheme->ending_mapping[i].cor_c == *(s+1)) {
-					repl = scheme->ending_mapping[i].repl;
-					s++;
-					break;
+
+			if(*(s+2) == 0 || iuliiaU32IsBlank(*(s+2))) {
+				for(i = 0; i < scheme->nof_ending_mapping; i++) {
+					if(scheme->ending_mapping[i].c == iuliiaU32ToLower(*s)
+						&& scheme->ending_mapping[i].cor_c == *(s+1)) {
+						repl = scheme->ending_mapping[i].repl;
+						s++;
+						break;
+					}
 				}
 			}
 		}

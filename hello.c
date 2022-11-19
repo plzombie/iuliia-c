@@ -42,6 +42,7 @@ int main(void)
 	if(new_s) {
 		wprintf(L"Before: %ls\n", s);
 		wprintf(L"After: %ls\n", new_s);
+		iuliiaFreeString(new_s);
 	} else
 		wprintf(L"Error translating\n");
 
@@ -49,9 +50,10 @@ int main(void)
 		wprintf(L"Sample %u\n", (unsigned int)i);
 		wprintf(L"Before: %ls\n", scheme->samples[i].in);
 		new_s = iuliiaTranslateW(scheme->samples[i].in, scheme);
-		if(new_s)
+		if(new_s) {
 			wprintf(L"After: %ls\n", new_s);
-		else
+			iuliiaFreeString(new_s);
+		} else
 			wprintf(L"Error translating\n");
 		wprintf(L"Should be: %ls\n", scheme->samples[i].out);
 	}
