@@ -24,22 +24,22 @@ int main(void)
 #endif
 
 	scheme = iuliiaLoadSchemeW(L"../../../my_schemes/smiles.json");
-	if (!scheme) {
+	if(!scheme) {
 		wprintf(L"Scheme not loaded\n");
 
 		return 0;
 	}
 
-	if (scheme->name)
+	if(scheme->name)
 		wprintf(L"Scheme name: %ls\n", scheme->name);
-	if (scheme->description)
+	if(scheme->description)
 		wprintf(L"Scheme description: %ls\n", scheme->description);
-	if (scheme->url)
+	if(scheme->url)
 		wprintf(L"Scheme url: %ls\n", scheme->url);
 
 	new_s = iuliiaTranslateW(s, scheme);
 
-	if (new_s) {
+	if(new_s) {
 		wprintf(L"Before: %ls\n", s);
 		wprintf(L"After: %ls\n", new_s);
 		iuliiaFreeString(new_s);
@@ -47,7 +47,7 @@ int main(void)
 	else
 		wprintf(L"Error translating\n");
 
-	for (i = 0; i < scheme->nof_samples; i++) {
+	for(i = 0; i < scheme->nof_samples; i++) {
 		wprintf(L"Sample %u\n", (unsigned int)i);
 		wprintf(L"Before: %ls\n", scheme->samples[i].in);
 		new_s = iuliiaTranslateW(scheme->samples[i].in, scheme);

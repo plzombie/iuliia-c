@@ -294,7 +294,7 @@ void iuliiaFreeScheme(iuliia_scheme_t *scheme)
 	free(scheme);
 }
 
-iuliia_scheme_t *iuliiaLoadSchemeW(wchar_t *filename)
+iuliia_scheme_t *iuliiaLoadSchemeW(const wchar_t *filename)
 {
 	FILE *f;
 	char *json;

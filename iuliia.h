@@ -63,7 +63,7 @@ typedef struct {
 extern iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char* json, size_t json_length);
 extern void iuliiaFreeScheme(iuliia_scheme_t* scheme);
 
-extern iuliia_scheme_t *iuliiaLoadSchemeW(wchar_t *filename);
+extern iuliia_scheme_t *iuliiaLoadSchemeW(const wchar_t *filename);
 
 extern size_t iuliiaU32len(const uint32_t *s);
 extern wchar_t *iuliiaU32toW(const uint32_t *s);
