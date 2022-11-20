@@ -578,7 +578,7 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 	if(!new_s) return 0;
 	
 	while(*s) {
-		uint32_t *repl = 0;
+		uint32_t *repl = 0, next_s, cur_s;
 		size_t i;
 		if(new_offset == new_len) {
 			uint32_t *_new_s;
@@ -591,15 +591,18 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 			new_s = _new_s;
 			new_len += 4;
 		}
+		
+		next_s = iuliiaU32ToLower(*(s+1));
+		cur_s = iuliiaU32ToLower(*s);
 
 		// Check word ending
-		if(!iuliiaU32IsBlank(*s) && !iuliiaU32IsBlank(*(s+1))
-			&& *(s+1) != 0) {
+		if(!iuliiaU32IsBlank(*s) && !iuliiaU32IsBlank(next_s)
+			&& next_s != 0) {
 
 			if(*(s+2) == 0 || iuliiaU32IsBlank(*(s+2))) {
 				for(i = 0; i < scheme->nof_ending_mapping; i++) {
-					if(scheme->ending_mapping[i].c == iuliiaU32ToLower(*s)
-						&& scheme->ending_mapping[i].cor_c == *(s+1)) {
+					if(scheme->ending_mapping[i].c == cur_s
+						&& scheme->ending_mapping[i].cor_c == next_s) {
 						repl = scheme->ending_mapping[i].repl;
 						s++;
 						break;
@@ -611,7 +614,7 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 		// Check previous mapping
 		if(!repl) {
 			for(i = 0; i < scheme->nof_prev_mapping; i++) {
-				if(scheme->prev_mapping[i].c == iuliiaU32ToLower(*s)
+				if(scheme->prev_mapping[i].c == cur_s
 					&& scheme->prev_mapping[i].cor_c == prev_s) {
 					repl = scheme->prev_mapping[i].repl;
 					break;
@@ -622,8 +625,8 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 		// Check next mapping
 		if(!repl) {
 			for(i = 0; i < scheme->nof_next_mapping; i++) {
-				if(scheme->next_mapping[i].c == iuliiaU32ToLower(*s)
-					&& scheme->next_mapping[i].cor_c == *(s+1)) {
+				if(scheme->next_mapping[i].c == cur_s
+					&& scheme->next_mapping[i].cor_c == next_s) {
 					repl = scheme->next_mapping[i].repl;
 					break;
 				}
@@ -633,7 +636,7 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 		// Check direct mapping
 		if(!repl) {
 			for(i = 0; i < scheme->nof_mapping; i++) {
-				if(scheme->mapping[i].c == iuliiaU32ToLower(*s)) {
+				if(scheme->mapping[i].c == cur_s) {
 					repl = scheme->mapping[i].repl;
 					break;
 				}
@@ -655,7 +658,7 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 					new_s = _new_s;
 					new_len += 4;
 				}
-				if(iuliiaU32IsUpper(*s) && first_char)
+				if(first_char && iuliiaU32IsUpper(*s))
 					new_s[new_offset] = iuliiaU32ToUpper(*repl);
 				else
 					new_s[new_offset] = *repl;
@@ -668,7 +671,7 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 			new_offset++;
 		}
 
-		prev_s = *s;
+		prev_s = cur_s;
 		if(iuliiaU32IsBlank(prev_s)) prev_s = 0;
 		s++;
 	}
