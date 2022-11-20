@@ -294,58 +294,67 @@ void iuliiaFreeScheme(iuliia_scheme_t *scheme)
 	free(scheme);
 }
 
-iuliia_scheme_t *iuliiaLoadSchemeW(const wchar_t *filename)
+iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f)
 {
-	FILE *f;
 	char *json;
 	size_t json_length;
 	long long f_size;
 	iuliia_scheme_t *scheme;
 
-	f = _wfopen(filename, L"rb");
 	if(!f) return 0;
 
-	if(fseek(f, 0, SEEK_END)) {
-		fclose(f);
-
-		return 0;
-	}
+	if(fseek(f, 0, SEEK_END)) return 0;
 
 	f_size = _ftelli64(f);
-	if(f_size > SIZE_MAX) {
-		fclose(f);
-
-		return 0;
-	}
+	if(f_size > SIZE_MAX) return 0;
 
 	json_length = (size_t)f_size;
 
-	if(fseek(f, 0, SEEK_SET)) {
-		fclose(f);
-
-		return 0;
-	}
+	if(fseek(f, 0, SEEK_SET)) return 0;
 
 	json = malloc(json_length+1);
-	if(!json) {
-		fclose(f);
-
-		return 0;
-	}
+	if(!json) return 0;
 	json[json_length] = 0;
 
 	if(fread(json, 1, json_length, f) != json_length) {
 		free(json);
-		fclose(f);
 
 		return 0;
 	}
 
-	fclose(f);
-
 	scheme = iuliiaLoadSchemeFromMemory(json, json_length);
 
 	free(json);
+
+	return scheme;
+}
+
+iuliia_scheme_t *iuliiaLoadSchemeW(const wchar_t *filename)
+{
+	FILE *f;
+	iuliia_scheme_t *scheme;
+
+	f = _wfopen(filename, L"rb");
+	if(!f) return 0;
+
+	scheme = iuliiaLoadSchemeFromFile(f);
+
+	fclose(f);
+
+	return scheme;
+}
+
+iuliia_scheme_t *iuliiaLoadSchemeA(const char *filename)
+{
+	FILE *f;
+	iuliia_scheme_t *scheme;
+
+	f = fopen(filename, "rb");
+	if(!f) return 0;
+
+	scheme = iuliiaLoadSchemeFromFile(f);
+
+	fclose(f);
 
 	return scheme;
 }

@@ -28,6 +28,10 @@ SOFTWARE.
 #include <wchar.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 	uint32_t c;
 	uint32_t *repl;
@@ -63,7 +67,9 @@ typedef struct {
 extern iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char* json, size_t json_length);
 extern void iuliiaFreeScheme(iuliia_scheme_t* scheme);
 
+extern iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f);
 extern iuliia_scheme_t *iuliiaLoadSchemeW(const wchar_t *filename);
+extern iuliia_scheme_t *iuliiaLoadSchemeA(const char *filename);
 
 extern size_t iuliiaU32len(const uint32_t *s);
 extern wchar_t *iuliiaU32toW(const uint32_t *s);
@@ -85,5 +91,9 @@ extern uint32_t *iuliiaTranslateAtoU32(const char *s, const iuliia_scheme_t *sch
 extern char *iuliiaTranslateA(const char *s, const iuliia_scheme_t *scheme);
 
 extern void iuliiaFreeString(void *s);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
