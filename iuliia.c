@@ -25,18 +25,19 @@ SOFTWARE.
 #include "iuliia.h"
 #include "forks/json.h/json.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-
-#include <errno.h>
-
 #if defined(WIN32)
 #include <Windows.h>
 #else
 #define _LARGEFILE_SOURCE
 #define _LARGEFILE64_SOURCE
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <wctype.h>
+
+#include <errno.h>
 
 static bool iuliiaIntJsonLoadStringW(struct json_value_s *value, wchar_t **str)
 {
@@ -441,7 +442,7 @@ wchar_t *iuliiaU32toW(const uint32_t *s)
 			else {
 				*p = (*s-0x10000) >> 10 | 0xd800;
 				p++;
-				*p = (*s-0x10000) & 0x3ff | 0xdc00;
+				*p = ((*s-0x10000) & 0x3ff) | 0xdc00;
 			}
 
 			if(*s == 0) break;
