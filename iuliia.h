@@ -88,6 +88,7 @@ extern uint32_t *iuliiaTranslateWtoU32(const wchar_t *s, const iuliia_scheme_t *
 extern wchar_t *iuliiaTranslateW(const wchar_t *s, const iuliia_scheme_t *scheme);
 
 extern uint32_t *iuliiaTranslateAtoU32(const char *s, const iuliia_scheme_t *scheme);
+extern wchar_t* iuliiaTranslateAtoW(const char *s, const iuliia_scheme_t *scheme);
 extern char *iuliiaTranslateA(const char *s, const iuliia_scheme_t *scheme);
 
 extern void iuliiaFreeString(void *s);

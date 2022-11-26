@@ -731,12 +731,63 @@ wchar_t *iuliiaTranslateW(const wchar_t *s, const iuliia_scheme_t *scheme)
 
 uint32_t *iuliiaTranslateAtoU32(const char *s, const iuliia_scheme_t *scheme)
 {
-	return 0;
+	wchar_t *sw;
+	uint32_t *new_su32;
+	size_t s_len;
+
+	s_len = strlen(s);
+	sw = malloc((s_len+1)*sizeof(wchar_t));
+	if(!sw) return 0;
+
+	mbstowcs(sw, s, s_len);
+	sw[s_len] = 0;
+
+	new_su32 = iuliiaTranslateWtoU32(sw, scheme);
+	free(sw);
+
+	return new_su32;
+}
+
+wchar_t *iuliiaTranslateAtoW(const char *s, const iuliia_scheme_t *scheme)
+{
+	wchar_t *sw, *new_sw;
+	size_t s_len;
+
+	s_len = strlen(s);
+	sw = malloc((s_len+1)*sizeof(wchar_t));
+	if(!sw) return 0;
+
+	mbstowcs(sw, s, s_len);
+	sw[s_len] = 0;
+
+	new_sw = iuliiaTranslateW(sw, scheme);
+	free(sw);
+	
+	return new_sw;
 }
 
 char *iuliiaTranslateA(const char *s, const iuliia_scheme_t *scheme)
 {
-	return 0;
+	char *new_s;
+	wchar_t *new_sw;
+	size_t new_sw_len;
+
+	new_sw = iuliiaTranslateAtoW(s, scheme);
+	if(!new_sw) return 0;
+
+	new_sw_len = 4*wcslen(new_sw);
+	new_s = malloc(new_sw_len+1);
+	if(!new_s) {
+		free(new_sw);
+
+		return 0;
+	}
+
+	wcstombs(new_s, new_sw, new_sw_len);
+	new_s[new_sw_len] = 0;
+	free(new_sw);
+
+	return new_s;
 }
 
 void iuliiaFreeString(void *s)
