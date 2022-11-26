@@ -49,7 +49,11 @@ static bool iuliiaIntJsonLoadStringW(struct json_value_s *value, wchar_t **str)
 	if(!(*str)) return false;
 	(*str)[val->string_size] = 0;
 
+#if defined(WIN32)
 	MultiByteToWideChar(CP_UTF8, 0, val->string, (int)(val->string_size+1), *str, (int)(val->string_size+1));
+#else
+	mbstowcs(*str, val->string, val->string_size);
+#endif
 
 	return true;
 }
