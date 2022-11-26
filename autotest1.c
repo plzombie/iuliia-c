@@ -8,7 +8,9 @@
 
 #include <sys/types.h>
 #include <fcntl.h>
+#if defined(WIN32)
 #include <io.h>
+#endif
 
 bool TestScheme(const wchar_t *scheme_name, size_t *passed, size_t *missed);
 

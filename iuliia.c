@@ -29,8 +29,13 @@ SOFTWARE.
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <errno.h>
+
 #if defined(WIN32)
 #include <Windows.h>
+#else
+#define _LARGEFILE_SOURCE
+#define _LARGEFILE64_SOURCE
 #endif
 
 static bool iuliiaIntJsonLoadStringW(struct json_value_s *value, wchar_t **str)
@@ -307,7 +312,11 @@ iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f)
 
 	if(fseek(f, 0, SEEK_END)) return 0;
 
+#if defined(WIN32)
 	f_size = _ftelli64(f);
+#else
+	f_size = ftello64(f);
+#endif
 	if(f_size > SIZE_MAX) return 0;
 
 	json_length = (size_t)f_size;

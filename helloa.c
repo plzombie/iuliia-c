@@ -6,7 +6,9 @@
 
 #include <sys/types.h>
 #include <fcntl.h>
+#if defined(WIN32)
 #include <io.h>
+#endif
 
 int main(void)
 {
