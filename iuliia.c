@@ -22,15 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "iuliia.h"
-#include "forks/json.h/json.h"
-
 #if defined(WIN32)
 #include <Windows.h>
 #else
 #define _LARGEFILE_SOURCE
 #define _LARGEFILE64_SOURCE
 #endif
+
+#include "iuliia.h"
+#include "forks/json.h/json.h"
 
 #include <stdio.h>
 #include <stdlib.h>
