@@ -29,7 +29,9 @@ SOFTWARE.
 #include <stdlib.h>
 #include <stdbool.h>
 
+#if defined(WIN32)
 #include <Windows.h>
+#endif
 
 static bool iuliiaIntJsonLoadStringW(struct json_value_s *value, wchar_t **str)
 {
@@ -328,6 +330,43 @@ iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f)
 
 	return scheme;
 }
+
+#if !defined(WIN32)
+FILE *_wfopen(const wchar_t* filename, const wchar_t* mode)
+{
+	size_t filename_len, mode_len;
+	char* cfilename = 0, * cmode = 0;
+	FILE *f = 0;
+
+	filename_len = wcslen(filename);
+	mode_len = wcslen(mode);
+
+	cfilename = malloc(filename_len * MB_CUR_MAX + 1);
+	cmode = malloc(mode_len * MB_CUR_MAX + 1);
+	if (!cfilename || !cmode) {
+		errno = ENOMEM;
+		goto FINAL;
+	}
+
+	if (wcstombs(cfilename, filename, filename_len * MB_CUR_MAX + 1) == (size_t)(-1)) {
+		errno = EINVAL;
+		goto FINAL;
+	}
+
+	if (wcstombs(cmode, mode, mode_len * MB_CUR_MAX + 1) == (size_t)(-1)) {
+		errno = EINVAL;
+		goto FINAL;
+	}
+
+	f = fopen(cfilename, cmode);
+
+FINAL:
+	if (cfilename) free(cfilename);
+	if (cmode) free(cmode);
+
+	return f;
+}
+#endif
 
 iuliia_scheme_t *iuliiaLoadSchemeW(const wchar_t *filename)
 {

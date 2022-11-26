@@ -37,5 +37,11 @@
 *.sym
 *.err
 
+#GCC
+*.o
 
-
+#Unix Build
+BUILD_UNIX_MAKEFILE/hello
+BUILD_UNIX_MAKEFILE/hello2
+BUILD_UNIX_MAKEFILE/helloa
+BUILD_UNIX_MAKEFILE/autotest1
