@@ -44,7 +44,7 @@ const wchar_t *scheme_names[] = {
 		L"../../../forks/iuliia/yandex_money.json"
 	};
 
-int main(int argc, char **argv)
+int main(void)
 {
 	size_t failed_schemes = 0, passed_tests = 0, missed_tests = 0, i;
 	setlocale(LC_ALL, "");
