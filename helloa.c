@@ -4,12 +4,6 @@
 #include <stdio.h>
 #include <locale.h>
 
-#include <sys/types.h>
-#include <fcntl.h>
-#if defined(WIN32)
-#include <io.h>
-#endif
-
 int main(void)
 {
 	iuliia_scheme_t *scheme = 0;

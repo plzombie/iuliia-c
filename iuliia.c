@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <Windows.h>
 #else
 #define _LARGEFILE_SOURCE
@@ -50,7 +50,7 @@ static bool iuliiaIntJsonLoadStringW(struct json_value_s *value, wchar_t **str)
 	if(!(*str)) return false;
 	(*str)[val->string_size] = 0;
 
-#if defined(WIN32)
+#if defined(_WIN32)
 	MultiByteToWideChar(CP_UTF8, 0, val->string, (int)(val->string_size+1), *str, (int)(val->string_size+1));
 #else
 	mbstowcs(*str, val->string, val->string_size);
@@ -317,7 +317,7 @@ iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f)
 
 	if(fseek(f, 0, SEEK_END)) return 0;
 
-#if defined(WIN32)
+#if defined(_WIN32)
 	f_size = _ftelli64(f);
 #else
 	f_size = ftello64(f);
@@ -345,7 +345,7 @@ iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f)
 	return scheme;
 }
 
-#if !defined(WIN32)
+#if !defined(_WIN32)
 FILE *_wfopen(const wchar_t* filename, const wchar_t* mode)
 {
 	size_t filename_len, mode_len;
