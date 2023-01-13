@@ -427,7 +427,7 @@ wchar_t *iuliiaU32toW(const uint32_t *s)
 	wchar_t *new_s;
 
 	s_len = iuliiaU32len(s);
-	new_s = malloc((s_len+1)*(sizeof(uint32_t)/sizeof(wchar_t)));
+	new_s = malloc((s_len+1)*sizeof(uint32_t));
 	if(!new_s) return 0;
 	
 	if(sizeof(uint32_t) == sizeof(wchar_t)) {
