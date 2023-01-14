@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <locale.h>
 
+#if defined(_DEBUG)
+#include "forks/stb/stb_leakcheck.h"
+#endif
+
 int main(void)
 {
 	iuliia_scheme_t *scheme = 0;
@@ -36,6 +40,10 @@ int main(void)
 		printf("Error translating\n");
 
 	iuliiaFreeScheme(scheme);
+
+#if defined(_DEBUG)
+	stb_leakcheck_dumpmem();
+#endif
 
 	return 0;
 }

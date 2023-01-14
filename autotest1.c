@@ -12,6 +12,10 @@
 #include <io.h>
 #endif
 
+#if defined(_DEBUG)
+#include "forks/stb/stb_leakcheck.h"
+#endif
+
 bool TestScheme(const wchar_t *scheme_name, size_t *passed, size_t *missed);
 
 const wchar_t *scheme_names[] = {
@@ -68,6 +72,11 @@ int main(void)
 	wprintf(L"Total passed tests: %u\n", (unsigned int)passed_tests);
 	wprintf(L"Total missed tests: %u\n", (unsigned int)missed_tests);
 
+
+#if defined(_DEBUG)
+	stb_leakcheck_dumpmem();
+#endif
+
 	if(failed_schemes || missed_tests)
 		return EXIT_FAILURE;
 	else
@@ -104,6 +113,8 @@ bool TestScheme(const wchar_t *scheme_name, size_t *passed, size_t *missed)
 		} else
 			current_missed++;
 	}
+
+	iuliiaFreeScheme(scheme);
 
 	*passed = current_passed;
 	*missed = current_missed;

@@ -22,6 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#if defined(_DEBUG)
+#define STB_LEAKCHECK_IMPLEMENTATION
+#include "forks/stb/stb_leakcheck.h"
+#endif
+
 #if defined(_WIN32)
 #include <Windows.h>
 #else
@@ -107,7 +112,11 @@ static bool iuliiaIntJsonReadMapping2char(struct json_object_s *obj, iuliia_mapp
 		struct json_string_s *str;
 
 		in_str = iuliiaU8toU32((const uint8_t *)el->name->string);
-		if(!in_str) return false;
+		if(!in_str) {
+			free(new_map);
+
+			return false;
+		}
 		in_str_len = iuliiaU32len(in_str);
 		if(in_str_len == 1)
 			new_map[i].c = in_str[0];
@@ -126,7 +135,11 @@ static bool iuliiaIntJsonReadMapping2char(struct json_object_s *obj, iuliia_mapp
 		free(in_str);
 
 		str = json_value_as_string(el->value);
-		if(!str) return false;
+		if(!str) {
+			free(new_map);
+
+			return false;
+		}
 
 		new_map[i].repl = iuliiaU8toU32((const uint8_t *)str->string);
 
@@ -290,6 +303,36 @@ void iuliiaFreeScheme(iuliia_scheme_t *scheme)
 		}
 
 		free(scheme->mapping);
+	}
+
+	if(scheme->nof_prev_mapping) {
+		size_t i;
+
+		for(i = 0; i < scheme->nof_prev_mapping; i++) {
+			if(scheme->prev_mapping[i].repl) free(scheme->prev_mapping[i].repl);
+		}
+
+		free(scheme->prev_mapping);
+	}
+
+	if(scheme->nof_next_mapping) {
+		size_t i;
+
+		for(i = 0; i < scheme->nof_next_mapping; i++) {
+			if(scheme->next_mapping[i].repl) free(scheme->next_mapping[i].repl);
+		}
+
+		free(scheme->next_mapping);
+	}
+
+	if(scheme->nof_ending_mapping) {
+		size_t i;
+
+		for(i = 0; i < scheme->nof_ending_mapping; i++) {
+			if(scheme->ending_mapping[i].repl) free(scheme->ending_mapping[i].repl);
+		}
+
+		free(scheme->ending_mapping);
 	}
 
 	if(scheme->nof_samples) {
@@ -772,11 +815,8 @@ wchar_t *iuliiaTranslateW(const wchar_t *s, const iuliia_scheme_t *scheme)
 		if(!new_su32) return 0;
 		
 		new_s = iuliiaU32toW(new_su32);
-		if(!new_s) {
-			iuliiaFreeString(new_su32);
-			
-			return 0;
-		}
+		iuliiaFreeString(new_su32);
+		if(!new_s) return 0;
 		
 		return new_s;
 	}
