@@ -42,7 +42,7 @@ int main(void)
 
 	iuliiaFreeScheme(scheme);
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(USE_STB_LEAKCHECK)
 	stb_leakcheck_dumpmem();
 #endif
 

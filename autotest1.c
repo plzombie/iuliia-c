@@ -74,7 +74,7 @@ int main(void)
 	wprintf(L"Total missed tests: %u\n", (unsigned int)missed_tests);
 
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(USE_STB_LEAKCHECK)
 	stb_leakcheck_dumpmem();
 #endif
 
