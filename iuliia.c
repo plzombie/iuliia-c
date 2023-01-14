@@ -22,8 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#if defined(_DEBUG)
-#define STB_LEAKCHECK_IMPLEMENTATION
+#if defined(_DEBUG) && defined(USE_STB_LEAKCHECK)
 #include "forks/stb/stb_leakcheck.h"
 #endif
 

@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <locale.h>
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(USE_STB_LEAKCHECK)
+#define STB_LEAKCHECK_IMPLEMENTATION
 #include "forks/stb/stb_leakcheck.h"
 #endif
 
