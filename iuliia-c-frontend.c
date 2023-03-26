@@ -72,7 +72,6 @@ int main(int argc, char** argv)
 	CHAR original_text[1024], *translated_text = 0;
 	iuliia_scheme_t *scheme = 0;
 	FILE *f_input = 0, *f_output = 0;
-	int result = EXIT_SUCCESS;
 
 	if(argc < 2) {
 		PRINTF("iuliia-c scheme_filename [input_filename] [output_filename]\n");
@@ -123,7 +122,7 @@ int main(int argc, char** argv)
 		f_output = stdout;
 
 	while(!feof(f_input)) {
-		fgetws(original_text, 1024, f_input);
+		FGETS(original_text, f_input);
 
 		translated_text = IULIIATRANSLATE(original_text, scheme);
 		if(!translated_text) {
