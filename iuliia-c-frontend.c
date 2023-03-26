@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 		f_output = stdout;
 
 	while(!feof(f_input)) {
-		FGETS(original_text, f_input);
+		if(!FGETS(original_text, f_input)) break;
 
 		translated_text = IULIIATRANSLATE(original_text, scheme);
 		if(!translated_text) {
