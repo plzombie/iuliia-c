@@ -56,7 +56,7 @@ SOFTWARE.
 #define PRINTF(t) printf(t)
 #define STDERR_PRINTF(t) fprintf(stderr, t)
 #define FPUTS(t, f) fputs(t, f)
-#define FGETS(t, f) fgets(t, f)
+#define FGETS(t, f) fgets(t, 1024, f)
 #define FOPEN(f, a) fopen(f, a)
 #define CHAR char
 #define _ftelli64 ftello64
