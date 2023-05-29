@@ -277,6 +277,8 @@ iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length)
 
 	free(root);
 
+	iuliiaPrepareScheme(scheme);
+
 	return scheme;
 
 IULIIA_ERROR:
@@ -346,6 +348,27 @@ void iuliiaFreeScheme(iuliia_scheme_t *scheme)
 	}
 
 	free(scheme);
+}
+
+static int iuliiaCompare1char(const iuliia_mapping_1char_t *a, const iuliia_mapping_1char_t *b)
+{
+	return a->c - b->c;
+}
+
+static int iuliiaCompare2char(const iuliia_mapping_2char_t *a, const iuliia_mapping_2char_t *b)
+{
+	if(a->c != b->c)
+		return a->c - b->c;
+	else
+		return a->cor_c - b->cor_c;
+}
+
+void iuliiaPrepareScheme(iuliia_scheme_t *scheme)
+{
+	qsort(scheme->mapping, scheme->nof_mapping, sizeof(iuliia_mapping_1char_t), iuliiaCompare1char);
+	qsort(scheme->prev_mapping, scheme->nof_prev_mapping, sizeof(iuliia_mapping_2char_t), iuliiaCompare2char);
+	qsort(scheme->next_mapping, scheme->nof_next_mapping, sizeof(iuliia_mapping_2char_t), iuliiaCompare2char);
+	qsort(scheme->ending_mapping, scheme->nof_ending_mapping, sizeof(iuliia_mapping_2char_t), iuliiaCompare2char);
 }
 
 iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f)
@@ -672,6 +695,74 @@ int iuliiaU32IsBlank(uint32_t c)
 		return 0;
 }
 
+static uint32_t *iuliiaBsearch1char(uint32_t c, const iuliia_mapping_1char_t *mapping, size_t size)
+{
+	size_t start, end;
+
+	if(!size) return 0;
+	if(SIZE_MAX/2 < size) return 0;
+
+	start = 0;
+	end = size - 1;
+
+	while(start <= end) {
+		size_t mid;
+
+		mid = (end + start) / 2;
+		if(mapping[mid].c == c)
+			return mapping[mid].repl;
+		else if(start == end)
+			break;
+		else if(mapping[mid].c < c)
+			start = mid + 1;
+		else if(mid > 0) // mapping[mid].c < c
+			end = mid - 1;
+		else
+			break;
+	}
+
+	return 0;
+}
+
+static uint32_t *iuliiaBsearch2char(uint32_t c, uint32_t cor_c, const iuliia_mapping_2char_t *mapping, size_t size)
+{
+	size_t start, end;
+
+	if(!size) return 0;
+	if(SIZE_MAX/2 < size) return 0;
+
+	start = 0;
+	end = size - 1;
+	if(c == 1083 && cor_c == 1080 && size == 14) {
+		size = size;
+	}
+
+	while (start <= end) {
+		size_t mid;
+
+		mid = (end + start) / 2;
+		if(mapping[mid].c == c) {
+			if(mapping[mid].cor_c == cor_c)
+				return mapping[mid].repl;
+			else if(start == end)
+				break;
+			else if(mapping[mid].cor_c < cor_c)
+				start = mid + 1; 
+			else if(mid > 0) // mapping[mid].cor_c > cor_c
+				end = mid - 1;
+			else
+				break;
+		} else if(mapping[mid].c < c)
+			start = mid + 1; 
+		else if(mid > 0) // mapping[mid].c > c
+			end = mid - 1;
+		else
+			break;
+	}
+
+	return 0;
+}
+
 uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 {
 	uint32_t *new_s, prev_s = 0;
@@ -683,7 +774,6 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 	
 	while(*s) {
 		uint32_t *repl = 0, next_s, cur_s;
-		size_t i;
 		if(new_offset == new_len) {
 			uint32_t *_new_s;
 
@@ -704,47 +794,31 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 			&& next_s != 0) {
 
 			if(*(s+2) == 0 || iuliiaU32IsBlank(*(s+2))) {
-				for(i = 0; i < scheme->nof_ending_mapping; i++) {
-					if(scheme->ending_mapping[i].c == cur_s
-						&& scheme->ending_mapping[i].cor_c == next_s) {
-						repl = scheme->ending_mapping[i].repl;
-						s++;
-						break;
-					}
-				}
+				repl = iuliiaBsearch2char(cur_s, next_s, scheme->ending_mapping, scheme->nof_ending_mapping);
+				if(repl) s++;
 			}
 		}
 
 		// Check previous mapping
 		if(!repl) {
-			for(i = 0; i < scheme->nof_prev_mapping; i++) {
-				if(scheme->prev_mapping[i].c == cur_s
-					&& scheme->prev_mapping[i].cor_c == prev_s) {
-					repl = scheme->prev_mapping[i].repl;
-					break;
-				}
-			}
+			repl = iuliiaBsearch2char(cur_s, prev_s, scheme->prev_mapping, scheme->nof_prev_mapping);
 		}
 
 		// Check next mapping
 		if(!repl) {
-			for(i = 0; i < scheme->nof_next_mapping; i++) {
-				if(scheme->next_mapping[i].c == cur_s
-					&& scheme->next_mapping[i].cor_c == next_s) {
-					repl = scheme->next_mapping[i].repl;
-					break;
-				}
-			}
+			repl = iuliiaBsearch2char(cur_s, next_s, scheme->next_mapping, scheme->nof_next_mapping);
 		}
 
 		// Check direct mapping
 		if(!repl) {
-			for(i = 0; i < scheme->nof_mapping; i++) {
+			repl = iuliiaBsearch1char(cur_s, scheme->mapping, scheme->nof_mapping);
+
+			/*for (i = 0; i < scheme->nof_mapping; i++) {
 				if(scheme->mapping[i].c == cur_s) {
 					repl = scheme->mapping[i].repl;
 					break;
 				}
-			}
+			}*/
 		}
 
 		if(repl) {

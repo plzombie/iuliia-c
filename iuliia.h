@@ -64,8 +64,9 @@ typedef struct {
 	size_t nof_samples;
 } iuliia_scheme_t;
 
-extern iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char* json, size_t json_length);
-extern void iuliiaFreeScheme(iuliia_scheme_t* scheme);
+extern iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length);
+extern void iuliiaFreeScheme(iuliia_scheme_t *scheme);
+extern void iuliiaPrepareScheme(iuliia_scheme_t *scheme);
 
 extern iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f);
 extern iuliia_scheme_t *iuliiaLoadSchemeW(const wchar_t *filename);
