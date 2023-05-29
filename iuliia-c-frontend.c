@@ -137,6 +137,7 @@ int main(int argc, char** argv)
 		iuliiaFreeString(translated_text);
 	}
 
+	iuliiaFreeScheme(scheme);
 	if(input_filename) fclose(f_input);
 	if(output_filename) fclose(f_output);
 
