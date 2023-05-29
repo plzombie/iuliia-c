@@ -665,7 +665,18 @@ uint32_t *iuliiaU8toU32(const uint8_t *u8)
 
 uint32_t iuliiaU32ToLower(uint32_t c)
 {
-	if(c < 65536)
+	if(c < 128) {
+		if(c >= 'A' && c <= 'Z')
+			return c + 32;
+		else
+			return c;
+	} else if(c == 0x401) return 0x451;
+	else if(c >= 0x410 && c <= 0x44F) {
+		if(c <= 0x42F)
+			return c + 32;
+		else
+			return c;
+	} if(c < 65536)
 		return towlower(c);
 	else
 		return c;
@@ -681,16 +692,19 @@ uint32_t iuliiaU32ToUpper(uint32_t c)
 
 int iuliiaU32IsUpper(uint32_t c)
 {
-	if(c < 65536)
+	if(c >= 'A' && c <= 'Z')
+		return 1;
+	else if(c >= 0x410 && c <= 0x42F)
+		return 1;
+	else if(c < 65536)
 		return iswupper(c);
 	else
 		return 0;
 }
 
-int iuliiaU32IsBlank(uint32_t c)
-{
+int iuliiaU32IsAlpha(uint32_t c) {
 	if(c < 65536)
-		return iswblank(c);
+		return iswalpha(c);
 	else
 		return 0;
 }
@@ -790,10 +804,10 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 		cur_s = iuliiaU32ToLower(*s);
 
 		// Check word ending
-		if(!iuliiaU32IsBlank(*s) && !iuliiaU32IsBlank(next_s)
+		if(iuliiaU32IsAlpha(*s) && iuliiaU32IsAlpha(next_s)
 			&& next_s != 0) {
 
-			if(*(s+2) == 0 || iuliiaU32IsBlank(*(s+2))) {
+			if(*(s+2) == 0 || !iuliiaU32IsAlpha(*(s+2))) {
 				repl = iuliiaBsearch2char(cur_s, next_s, scheme->ending_mapping, scheme->nof_ending_mapping);
 				if(repl) s++;
 			}
@@ -812,13 +826,6 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 		// Check direct mapping
 		if(!repl) {
 			repl = iuliiaBsearch1char(cur_s, scheme->mapping, scheme->nof_mapping);
-
-			/*for (i = 0; i < scheme->nof_mapping; i++) {
-				if(scheme->mapping[i].c == cur_s) {
-					repl = scheme->mapping[i].repl;
-					break;
-				}
-			}*/
 		}
 
 		if(repl) {
@@ -850,7 +857,7 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 		}
 
 		prev_s = cur_s;
-		if(iuliiaU32IsBlank(prev_s)) prev_s = 0;
+		if(!iuliiaU32IsAlpha(prev_s)) prev_s = 0;
 		s++;
 	}
 	new_s[new_offset] = 0;

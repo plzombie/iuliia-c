@@ -81,7 +81,7 @@ extern uint32_t *iuliiaU8toU32(const uint8_t *u8);
 extern uint32_t iuliiaU32ToLower(uint32_t c);
 extern uint32_t iuliiaU32ToUpper(uint32_t c);
 extern int iuliiaU32IsUpper(uint32_t c);
-extern int iuliiaU32IsBlank(uint32_t c);
+extern int iuliiaU32IsAlpha(uint32_t c);
 
 extern uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme);
 
