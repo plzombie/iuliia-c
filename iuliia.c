@@ -363,12 +363,14 @@ static int iuliiaCompare2char(const iuliia_mapping_2char_t *a, const iuliia_mapp
 		return a->cor_c - b->cor_c;
 }
 
+typedef int (* iuliia_comparator_t)(const void*, const void*);
+
 void iuliiaPrepareScheme(iuliia_scheme_t *scheme)
 {
-	qsort(scheme->mapping, scheme->nof_mapping, sizeof(iuliia_mapping_1char_t), iuliiaCompare1char);
-	qsort(scheme->prev_mapping, scheme->nof_prev_mapping, sizeof(iuliia_mapping_2char_t), iuliiaCompare2char);
-	qsort(scheme->next_mapping, scheme->nof_next_mapping, sizeof(iuliia_mapping_2char_t), iuliiaCompare2char);
-	qsort(scheme->ending_mapping, scheme->nof_ending_mapping, sizeof(iuliia_mapping_2char_t), iuliiaCompare2char);
+	qsort(scheme->mapping, scheme->nof_mapping, sizeof(iuliia_mapping_1char_t), (iuliia_comparator_t)iuliiaCompare1char);
+	qsort(scheme->prev_mapping, scheme->nof_prev_mapping, sizeof(iuliia_mapping_2char_t), (iuliia_comparator_t)iuliiaCompare2char);
+	qsort(scheme->next_mapping, scheme->nof_next_mapping, sizeof(iuliia_mapping_2char_t), (iuliia_comparator_t)iuliiaCompare2char);
+	qsort(scheme->ending_mapping, scheme->nof_ending_mapping, sizeof(iuliia_mapping_2char_t), (iuliia_comparator_t)iuliiaCompare2char);
 }
 
 iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f)
