@@ -17,9 +17,9 @@
 
 int main(void)
 {
-	iuliia_scheme_t* scheme = 0;
-	wchar_t* new_s;
-	const wchar_t* s = L"Hello \x263b";
+	iuliia_scheme_t *scheme = 0;
+	wchar_t *new_s;
+	const wchar_t *s = L"Hello \x263b";
 	size_t i;
 
 	setlocale(LC_ALL, "");

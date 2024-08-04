@@ -45,10 +45,10 @@ SOFTWARE.
 
 static bool iuliiaIntJsonLoadStringW(struct json_value_s *value, wchar_t **str)
 {
-	struct json_string_s* val;
+	struct json_string_s *val;
 
 	val = json_value_as_string(value);
-	if (!val) return false;
+	if(!val) return false;
 	
 	*str = malloc((val->string_size + 1) * sizeof(wchar_t));
 	if(!(*str)) return false;
@@ -153,7 +153,7 @@ static bool iuliiaIntJsonReadMapping2char(struct json_object_s *obj, iuliia_mapp
 static bool iuliiaIntJsonReadSamples(struct json_array_s *arr, iuliia_samples_t **samples)
 {
 	iuliia_samples_t *new_samples;
-	struct json_array_element_s * arr_el;
+	struct json_array_element_s *arr_el;
 	size_t i = 0;
 
 	new_samples = malloc(arr->length*sizeof(iuliia_samples_t));
@@ -227,7 +227,7 @@ iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length)
 			if(!iuliiaIntJsonLoadStringW(el->value, &(scheme->url))) goto IULIIA_ERROR;
 		} else if(!strncmp(el->name->string, "mapping", el->name->string_size)) {
 			if(!json_value_is_null(el->value)) {
-				struct json_object_s* obj;
+				struct json_object_s *obj;
 
 				obj = json_value_as_object(el->value);
 				if(!obj) goto IULIIA_ERROR;
@@ -236,7 +236,7 @@ iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length)
 			}
 		} else if(!strncmp(el->name->string, "prev_mapping", el->name->string_size)) {
 			if(!json_value_is_null(el->value)) {
-				struct json_object_s* obj;
+				struct json_object_s *obj;
 
 				obj = json_value_as_object(el->value);
 				if(!obj) goto IULIIA_ERROR;
@@ -245,7 +245,7 @@ iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length)
 			}
 		} else if(!strncmp(el->name->string, "next_mapping", el->name->string_size)) {
 			if(!json_value_is_null(el->value)) {
-				struct json_object_s* obj;
+				struct json_object_s *obj;
 
 				obj = json_value_as_object(el->value);
 				if(!obj) goto IULIIA_ERROR;
@@ -254,7 +254,7 @@ iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length)
 			}
 		} else if(!strncmp(el->name->string, "ending_mapping", el->name->string_size)) {
 			if(!json_value_is_null(el->value)) {
-				struct json_object_s* obj;
+				struct json_object_s *obj;
 
 				obj = json_value_as_object(el->value);
 				if(!obj) goto IULIIA_ERROR;
@@ -413,10 +413,10 @@ iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f)
 }
 
 #if !defined(_WIN32)
-FILE *_wfopen(const wchar_t* filename, const wchar_t* mode)
+FILE *_wfopen(const wchar_t *filename, const wchar_t *mode)
 {
 	size_t filename_len, mode_len;
-	char* cfilename = 0, * cmode = 0;
+	char *cfilename = 0, *cmode = 0;
 	FILE *f = 0;
 
 	filename_len = wcslen(filename);
@@ -424,17 +424,17 @@ FILE *_wfopen(const wchar_t* filename, const wchar_t* mode)
 
 	cfilename = malloc(filename_len * MB_CUR_MAX + 1);
 	cmode = malloc(mode_len * MB_CUR_MAX + 1);
-	if (!cfilename || !cmode) {
+	if(!cfilename || !cmode) {
 		errno = ENOMEM;
 		goto FINAL;
 	}
 
-	if (wcstombs(cfilename, filename, filename_len * MB_CUR_MAX + 1) == (size_t)(-1)) {
+	if(wcstombs(cfilename, filename, filename_len * MB_CUR_MAX + 1) == (size_t)(-1)) {
 		errno = EINVAL;
 		goto FINAL;
 	}
 
-	if (wcstombs(cmode, mode, mode_len * MB_CUR_MAX + 1) == (size_t)(-1)) {
+	if(wcstombs(cmode, mode, mode_len * MB_CUR_MAX + 1) == (size_t)(-1)) {
 		errno = EINVAL;
 		goto FINAL;
 	}
@@ -442,8 +442,8 @@ FILE *_wfopen(const wchar_t* filename, const wchar_t* mode)
 	f = fopen(cfilename, cmode);
 
 FINAL:
-	if (cfilename) free(cfilename);
-	if (cmode) free(cmode);
+	if(cfilename) free(cfilename);
+	if(cmode) free(cmode);
 
 	return f;
 }

@@ -65,7 +65,7 @@ SOFTWARE.
 #if defined(_WIN32)
 int wmain(int argc, wchar_t **argv)
 #else
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 #endif
 {
 	CHAR *scheme_filename = 0, *input_filename = 0, *output_filename = 0;

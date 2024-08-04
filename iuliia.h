@@ -54,7 +54,7 @@ typedef struct {
 	wchar_t *url;
 	iuliia_mapping_1char_t *mapping;
 	size_t nof_mapping;
-	iuliia_mapping_2char_t* prev_mapping;
+	iuliia_mapping_2char_t *prev_mapping;
 	size_t nof_prev_mapping;
 	iuliia_mapping_2char_t *next_mapping;
 	size_t nof_next_mapping;
@@ -89,7 +89,7 @@ extern uint32_t *iuliiaTranslateWtoU32(const wchar_t *s, const iuliia_scheme_t *
 extern wchar_t *iuliiaTranslateW(const wchar_t *s, const iuliia_scheme_t *scheme);
 
 extern uint32_t *iuliiaTranslateAtoU32(const char *s, const iuliia_scheme_t *scheme);
-extern wchar_t* iuliiaTranslateAtoW(const char *s, const iuliia_scheme_t *scheme);
+extern wchar_t *iuliiaTranslateAtoW(const char *s, const iuliia_scheme_t *scheme);
 extern char *iuliiaTranslateA(const char *s, const iuliia_scheme_t *scheme);
 
 extern void iuliiaFreeString(void *s);
