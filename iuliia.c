@@ -49,6 +49,8 @@ static bool iuliiaIntJsonLoadStringW(struct json_value_s *value, wchar_t **str)
 
 	val = json_value_as_string(value);
 	if(!val) return false;
+
+	if(SIZE_MAX/sizeof(wchar_t) <= val->string_size) return false;
 	
 	*str = malloc((val->string_size + 1) * sizeof(wchar_t));
 	if(!(*str)) return false;
@@ -68,6 +70,8 @@ static bool iuliiaIntJsonReadMapping1char(struct json_object_s *obj, iuliia_mapp
 	size_t i;
 	struct json_object_element_s *el;
 	iuliia_mapping_1char_t *new_map;
+
+	if(SIZE_MAX/sizeof(iuliia_mapping_1char_t) < obj->length) return false;
 
 	new_map = malloc(obj->length*sizeof(iuliia_mapping_1char_t));
 	if(!new_map) return false;
@@ -99,6 +103,8 @@ static bool iuliiaIntJsonReadMapping2char(struct json_object_s *obj, iuliia_mapp
 	size_t i;
 	struct json_object_element_s *el;
 	iuliia_mapping_2char_t *new_map;
+
+	if(SIZE_MAX/sizeof(iuliia_mapping_2char_t) < obj->length) return false;
 
 	new_map = malloc(obj->length*sizeof(iuliia_mapping_2char_t));
 	if(!new_map) return false;
@@ -156,6 +162,8 @@ static bool iuliiaIntJsonReadSamples(struct json_array_s *arr, iuliia_samples_t 
 	struct json_array_element_s *arr_el;
 	size_t i = 0;
 
+	if(SIZE_MAX/sizeof(iuliia_samples_t) < arr->length) return false;
+
 	new_samples = malloc(arr->length*sizeof(iuliia_samples_t));
 	if(!new_samples) return false;
 	memset(new_samples, 0, arr->length*sizeof(iuliia_samples_t));
@@ -202,8 +210,10 @@ iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length)
 	struct json_object_s *object;
 	struct json_object_element_s *el;
 
+	if(!root) return 0;
+
 	object = json_value_as_object(root);
-	if(!json) {
+	if(!object) {
 		free(root);
 
 		return 0;
@@ -389,7 +399,7 @@ iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f)
 #else
 	f_size = ftello64(f);
 #endif
-	if(f_size > SIZE_MAX) return 0;
+	if(f_size >= SIZE_MAX) return 0;
 
 	json_length = (size_t)f_size;
 
@@ -413,7 +423,7 @@ iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f)
 }
 
 #if !defined(_WIN32)
-FILE *_wfopen(const wchar_t *filename, const wchar_t *mode)
+static FILE *_wfopen(const wchar_t *filename, const wchar_t *mode)
 {
 	size_t filename_len, mode_len;
 	char *cfilename = 0, *cmode = 0;
@@ -421,6 +431,11 @@ FILE *_wfopen(const wchar_t *filename, const wchar_t *mode)
 
 	filename_len = wcslen(filename);
 	mode_len = wcslen(mode);
+
+	if(SIZE_MAX/MB_CUR_MAX <= filename_len || SIZE_MAX/MB_CUR_MAX <= mode_len) {
+		errno = ENAMETOOLONG;
+		return 0;
+	}
 
 	cfilename = malloc(filename_len * MB_CUR_MAX + 1);
 	cmode = malloc(mode_len * MB_CUR_MAX + 1);
@@ -528,6 +543,7 @@ uint32_t *iuliiaWtoU32(const wchar_t *s)
 	uint32_t *new_s;
 
 	s_len = wcslen(s);
+	if(SIZE_MAX/sizeof(uint32_t) <= s_len) return 0;
 	new_s = malloc((s_len+1)*sizeof(uint32_t));
 	if(!new_s) return 0;
 
@@ -641,7 +657,10 @@ uint32_t *iuliiaU8toU32(const uint8_t *u8)
 
 	str_size = strlen((const char *)u8);
 
+	if(SIZE_MAX/sizeof(uint32_t) <= str_size) return 0;
+
 	u32 = malloc((str_size+1)*sizeof(uint32_t));
+	if(!u32) return 0;
 
 	pu8 = u8;
 	pu32 = u32;
@@ -727,8 +746,6 @@ static uint32_t *iuliiaBsearch1char(uint32_t c, const iuliia_mapping_1char_t *ma
 		mid = (end + start) / 2;
 		if(mapping[mid].c == c)
 			return mapping[mid].repl;
-		else if(start == end)
-			break;
 		else if(mapping[mid].c < c)
 			start = mid + 1;
 		else if(mid > 0) // mapping[mid].c < c
@@ -749,9 +766,6 @@ static uint32_t *iuliiaBsearch2char(uint32_t c, uint32_t cor_c, const iuliia_map
 
 	start = 0;
 	end = size - 1;
-	if(c == 1083 && cor_c == 1080 && size == 14) {
-		size = size;
-	}
 
 	while (start <= end) {
 		size_t mid;
@@ -760,8 +774,6 @@ static uint32_t *iuliiaBsearch2char(uint32_t c, uint32_t cor_c, const iuliia_map
 		if(mapping[mid].c == c) {
 			if(mapping[mid].cor_c == cor_c)
 				return mapping[mid].repl;
-			else if(start == end)
-				break;
 			else if(mapping[mid].cor_c < cor_c)
 				start = mid + 1; 
 			else if(mid > 0) // mapping[mid].cor_c > cor_c
@@ -791,9 +803,9 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 	while(*s) {
 		uint32_t *repl = 0, next_s, cur_s;
 		if(new_offset == new_len) {
-			uint32_t *_new_s;
+			uint32_t *_new_s = 0;
 
-			_new_s = realloc(new_s, (new_len+5)*sizeof(uint32_t));
+			if(SIZE_MAX/sizeof(uint32_t)-5 >= new_len) _new_s = realloc(new_s, (new_len+5)*sizeof(uint32_t));
 			if(!_new_s) {
 				free(new_s);
 				return 0;
@@ -835,9 +847,9 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 
 			while(*repl) {
 				if(new_offset == new_len) {
-					uint32_t* _new_s;
+					uint32_t* _new_s = 0;
 
-					_new_s = realloc(new_s, (new_len+5)*sizeof(uint32_t));
+					if(SIZE_MAX/sizeof(uint32_t)-5 >= new_len) _new_s = realloc(new_s, (new_len+5)*sizeof(uint32_t));
 					if(!_new_s) {
 						free(new_s);
 						return 0;
@@ -911,6 +923,7 @@ uint32_t *iuliiaTranslateAtoU32(const char *s, const iuliia_scheme_t *scheme)
 	size_t s_len;
 
 	s_len = strlen(s);
+	if(SIZE_MAX/sizeof(wchar_t) <= s_len) return 0;
 	sw = malloc((s_len+1)*sizeof(wchar_t));
 	if(!sw) return 0;
 
@@ -929,6 +942,7 @@ wchar_t *iuliiaTranslateAtoW(const char *s, const iuliia_scheme_t *scheme)
 	size_t s_len;
 
 	s_len = strlen(s);
+	if(SIZE_MAX/sizeof(wchar_t) <= s_len) return 0;
 	sw = malloc((s_len+1)*sizeof(wchar_t));
 	if(!sw) return 0;
 
@@ -945,21 +959,27 @@ char *iuliiaTranslateA(const char *s, const iuliia_scheme_t *scheme)
 {
 	char *new_s;
 	wchar_t *new_sw;
-	size_t new_sw_len;
+	size_t new_sw_len, new_s_len;
 
 	new_sw = iuliiaTranslateAtoW(s, scheme);
 	if(!new_sw) return 0;
 
-	new_sw_len = 4*wcslen(new_sw);
-	new_s = malloc(new_sw_len+1);
+	new_sw_len = wcslen(new_sw);
+	if(SIZE_MAX/MB_CUR_MAX <= new_sw_len) {
+		free(new_sw);
+
+		return 0;
+	}
+	new_s_len = MB_CUR_MAX*new_sw_len;
+	new_s = malloc(new_s_len+1);
 	if(!new_s) {
 		free(new_sw);
 
 		return 0;
 	}
 
-	wcstombs(new_s, new_sw, new_sw_len);
-	new_s[new_sw_len] = 0;
+	wcstombs(new_s, new_sw, new_s_len);
+	new_s[new_s_len] = 0;
 	free(new_sw);
 
 	return new_s;
