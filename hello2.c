@@ -30,7 +30,7 @@ int main(void)
 	_setmode(_fileno(stderr), _O_U16TEXT);
 #endif
 
-	scheme = iuliiaLoadSchemeW(L"../../../my_schemes/smiles.json");
+	scheme = iuliiaLoadSchemeW(L"../my_schemes/smiles.json");
 	if(!scheme) {
 		wprintf(L"Scheme not loaded\n");
 

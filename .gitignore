@@ -1,6 +1,6 @@
 
 # Visual studio
-*.user
+#*.user
 *.obj
 *.log
 *.pdb

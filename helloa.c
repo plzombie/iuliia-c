@@ -25,7 +25,7 @@ int main(void)
 
 	setlocale(LC_ALL, "");
 
-	scheme = iuliiaLoadSchemeA("../../../forks/iuliia/wikipedia.json");
+	scheme = iuliiaLoadSchemeA("../forks/iuliia/wikipedia.json");
 	if(!scheme) {
 		printf("Scheme not loaded\n");
 
