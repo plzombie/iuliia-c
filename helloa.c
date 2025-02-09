@@ -13,7 +13,15 @@ int main(void)
 {
 	iuliia_scheme_t *scheme = 0;
 	char *new_s;
-	const char *s = "Привет, мир!";
+#ifdef _WIN32
+#ifdef __WATCOMC__
+	const char *s = "\x8F\xE0\xA8\xA2\xA5\xE2, \xAC\xA8\xE0!"; // CP866
+#else
+	const char *s = "\xCF\xF0\xE8\xE2\xE5\xF2, \xEC\xE8\xF0!"; // CP1251
+#endif
+#else
+	const char *s = "РџСЂРёРІРµС‚, РјРёСЂ!";
+#endif
 
 	setlocale(LC_ALL, "");
 

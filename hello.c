@@ -19,7 +19,7 @@ int main(void)
 {
 	iuliia_scheme_t *scheme = 0;
 	wchar_t *new_s;
-	const wchar_t *s = L"Привет, мир!";
+	const wchar_t *s = L"\x041F\x0440\x0438\x0432\x0435\x0442, \x043C\x0438\x0440!"; // "РџСЂРёРІРµС‚, РјРёСЂ!"
 	size_t i;
 
 	setlocale(LC_ALL, "");
