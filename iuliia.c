@@ -748,7 +748,7 @@ static uint32_t *iuliiaBsearch1char(uint32_t c, const iuliia_mapping_1char_t *ma
 			return mapping[mid].repl;
 		else if(mapping[mid].c < c)
 			start = mid + 1;
-		else if(mid > 0) // mapping[mid].c < c
+		else if(mid > 0) // mapping[mid].c > c
 			end = mid - 1;
 		else
 			break;
