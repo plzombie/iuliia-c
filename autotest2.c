@@ -53,8 +53,11 @@ int main(void)
 			failed_schemes++;
 			passed_tests++;
 			iuliiaFreeScheme(scheme);
-		} else
+		} else {
+			wprintf(L"Unintentionally opened \"%ls\"\n", scheme_names[i]);
+
 			missed_tests++;
+		}
 	}
 
 	wprintf(L"Total failed to open schemes: %u\n", (unsigned int)failed_schemes);
