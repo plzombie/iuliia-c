@@ -57,10 +57,16 @@ static bool iuliiaIntJsonLoadStringW(struct json_value_s *value, wchar_t **str)
 	(*str)[val->string_size] = 0;
 
 #if defined(_WIN32)
-	MultiByteToWideChar(CP_UTF8, 0, val->string, (int)(val->string_size+1), *str, (int)(val->string_size+1));
+	if(!MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, val->string, (int)(val->string_size+1), *str, (int)(val->string_size+1))) 
 #else
-	mbstowcs(*str, val->string, val->string_size);
+	if(mbstowcs(*str, val->string, val->string_size) == -1)
 #endif
+	{
+		free(*str);
+		*str = 0;
+
+		return false;
+	}
 
 	return true;
 }
