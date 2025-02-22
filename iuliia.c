@@ -310,6 +310,8 @@ iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length)
 
 IULIIA_ERROR:
 
+	free(root);
+
 	iuliiaFreeScheme(scheme);
 
 	return 0;
