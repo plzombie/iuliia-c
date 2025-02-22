@@ -142,6 +142,11 @@ int main(int argc, char **argv)
 	if(output_filename) fclose(f_output);
 
 #if defined(_DEBUG) && defined(USE_STB_LEAKCHECK)
+#ifdef _MSC_VER
+	_setmode(_fileno(stdin), _O_TEXT);
+	_setmode(_fileno(stdout), _O_TEXT);
+	_setmode(_fileno(stderr), _O_TEXT);
+#endif
 	stb_leakcheck_dumpmem();
 #endif
 
