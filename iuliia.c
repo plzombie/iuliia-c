@@ -306,6 +306,8 @@ iuliia_scheme_t *iuliiaLoadSchemeFromMemory(char *json, size_t json_length)
 		el = el->next;
 	}
 
+	if(!scheme->name || !scheme->description || !scheme->url || !scheme->mapping || !scheme->samples) goto IULIIA_ERROR;
+
 	free(root);
 
 	iuliiaPrepareScheme(scheme);
@@ -400,10 +402,10 @@ typedef int (* iuliia_comparator_t)(const void*, const void*);
 
 void iuliiaPrepareScheme(iuliia_scheme_t *scheme)
 {
-	qsort(scheme->mapping, scheme->nof_mapping, sizeof(iuliia_mapping_1char_t), (iuliia_comparator_t)iuliiaCompare1char);
-	qsort(scheme->prev_mapping, scheme->nof_prev_mapping, sizeof(iuliia_mapping_2char_t), (iuliia_comparator_t)iuliiaCompare2char);
-	qsort(scheme->next_mapping, scheme->nof_next_mapping, sizeof(iuliia_mapping_2char_t), (iuliia_comparator_t)iuliiaCompare2char);
-	qsort(scheme->ending_mapping, scheme->nof_ending_mapping, sizeof(iuliia_mapping_2char_t), (iuliia_comparator_t)iuliiaCompare2char);
+	if(scheme->mapping && scheme->nof_mapping) qsort(scheme->mapping, scheme->nof_mapping, sizeof(iuliia_mapping_1char_t), (iuliia_comparator_t)iuliiaCompare1char);
+	if(scheme->prev_mapping && scheme->nof_prev_mapping) qsort(scheme->prev_mapping, scheme->nof_prev_mapping, sizeof(iuliia_mapping_2char_t), (iuliia_comparator_t)iuliiaCompare2char);
+	if(scheme->next_mapping && scheme->nof_next_mapping) qsort(scheme->next_mapping, scheme->nof_next_mapping, sizeof(iuliia_mapping_2char_t), (iuliia_comparator_t)iuliiaCompare2char);
+	if(scheme->ending_mapping && scheme->nof_ending_mapping) qsort(scheme->ending_mapping, scheme->nof_ending_mapping, sizeof(iuliia_mapping_2char_t), (iuliia_comparator_t)iuliiaCompare2char);
 }
 
 iuliia_scheme_t *iuliiaLoadSchemeFromFile(FILE *f)
@@ -819,6 +821,8 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 	uint32_t *new_s, prev_s = 0;
 	size_t new_len, new_offset = 0;
 
+	if(!scheme->mapping) return 0;
+
 	new_len = iuliiaU32len(s);
 	new_s = malloc((new_len+1)*sizeof(uint32_t));
 	if(!new_s) return 0;
@@ -842,7 +846,7 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 
 		// Check word ending
 		if(iuliiaU32IsAlpha(*s) && iuliiaU32IsAlpha(next_s)
-			&& next_s != 0) {
+			&& next_s != 0 && scheme->ending_mapping) {
 
 			if(*(s+2) == 0 || !iuliiaU32IsAlpha(*(s+2))) {
 				repl = iuliiaBsearch2char(cur_s, next_s, scheme->ending_mapping, scheme->nof_ending_mapping);
@@ -851,12 +855,12 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 		}
 
 		// Check previous mapping
-		if(!repl) {
+		if(!repl && scheme->prev_mapping) {
 			repl = iuliiaBsearch2char(cur_s, prev_s, scheme->prev_mapping, scheme->nof_prev_mapping);
 		}
 
 		// Check next mapping
-		if(!repl) {
+		if(!repl && scheme->next_mapping) {
 			repl = iuliiaBsearch2char(cur_s, next_s, scheme->next_mapping, scheme->nof_next_mapping);
 		}
 
