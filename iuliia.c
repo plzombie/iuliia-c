@@ -89,12 +89,13 @@ static bool iuliiaIntJsonReadMapping1char(struct json_object_s *obj, iuliia_mapp
 		struct json_string_s *str;
 
 		new_c = iuliiaCharU8toU32((const uint8_t *)el->name->string, &(new_map[i].c));
-		if(!new_c) return false;
+		if(!new_c) goto IULIIA_ERROR;
 
 		str = json_value_as_string(el->value);
-		if(!str) return false;
+		if(!str) goto IULIIA_ERROR;
 
 		new_map[i].repl = iuliiaU8toU32((const uint8_t *)str->string);
+		if(!new_map[i].repl) goto IULIIA_ERROR;
 
 		el = el->next;
 	}
@@ -102,6 +103,16 @@ static bool iuliiaIntJsonReadMapping1char(struct json_object_s *obj, iuliia_mapp
 	*map = new_map;
 
 	return true;
+
+IULIIA_ERROR:
+
+	for(i = 0; i < obj->length; i++) {
+		if(new_map[i].repl) free(new_map[i].repl);
+	}
+
+	free(new_map);
+
+	return false;
 }
 
 static bool iuliiaIntJsonReadMapping2char(struct json_object_s *obj, iuliia_mapping_2char_t **map, bool cor_first)
