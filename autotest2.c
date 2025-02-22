@@ -31,7 +31,12 @@ const wchar_t *scheme_names[] = {
 		L"../test_schemes/wikipedia_cp1251_prev_mapping_part.json",
 		L"../test_schemes/wikipedia_cp1251_samples.json",
 		L"../test_schemes/wikipedia_cp1251_samples_part.json",
-		L"../test_schemes/wikipedia_cp1251_url.json"
+		L"../test_schemes/wikipedia_cp1251_url.json",
+		L"../test_schemes/wikipedia_no_description.json",
+		L"../test_schemes/wikipedia_no_mapping.json",
+		L"../test_schemes/wikipedia_no_name.json",
+		L"../test_schemes/wikipedia_no_samples.json",
+		L"../test_schemes/wikipedia_no_url.json"
 	};
 
 int main(void)
@@ -52,10 +57,10 @@ int main(void)
 		if(!scheme) {
 			failed_schemes++;
 			passed_tests++;
-			iuliiaFreeScheme(scheme);
 		} else {
 			wprintf(L"Unintentionally opened \"%ls\"\n", scheme_names[i]);
 
+			iuliiaFreeScheme(scheme);
 			missed_tests++;
 		}
 	}
