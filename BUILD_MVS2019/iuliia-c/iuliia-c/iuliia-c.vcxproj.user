@@ -22,6 +22,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)../</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments>"../forks/iuliia/bgn_pcgn.json" "tolstoy-anna karenina.txt" "tolstoy-anna karenina.en2.txt"</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)../</LocalDebuggerWorkingDirectory>

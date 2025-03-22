@@ -785,6 +785,7 @@ static uint32_t *iuliiaBsearch1char(uint32_t c, const iuliia_mapping_1char_t *ma
 static uint32_t *iuliiaBsearch2char(uint32_t c, uint32_t cor_c, const iuliia_mapping_2char_t *mapping, size_t size)
 {
 	size_t start, end;
+	uint64_t searching_c;
 
 	if(!size) return 0;
 	if(SIZE_MAX/2 < size) return 0;
@@ -792,22 +793,19 @@ static uint32_t *iuliiaBsearch2char(uint32_t c, uint32_t cor_c, const iuliia_map
 	start = 0;
 	end = size - 1;
 
+	searching_c = ((uint64_t)c << 32) + cor_c;
+
 	while (start <= end) {
+		uint64_t founded_c;
 		size_t mid;
 
 		mid = (end + start) / 2;
-		if(mapping[mid].c == c) {
-			if(mapping[mid].cor_c == cor_c)
-				return mapping[mid].repl;
-			else if(mapping[mid].cor_c < cor_c)
-				start = mid + 1; 
-			else if(mid > 0) // mapping[mid].cor_c > cor_c
-				end = mid - 1;
-			else
-				break;
-		} else if(mapping[mid].c < c)
+		founded_c = ((uint64_t)mapping[mid].c << 32) + mapping[mid].cor_c;
+		if(founded_c == searching_c) {
+			return mapping[mid].repl;
+		} else if(founded_c < searching_c)
 			start = mid + 1; 
-		else if(mid > 0) // mapping[mid].c > c
+		else if(mid > 0) // founded_c > searching_c
 			end = mid - 1;
 		else
 			break;
@@ -850,8 +848,8 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 		next_s = iuliiaU32ToLower(*(s+1));
 
 		// Check word ending
-		if(iuliiaU32IsAlpha(*s) && iuliiaU32IsAlpha(next_s)
-			&& next_s != 0 && scheme->ending_mapping) {
+		if(scheme->ending_mapping && next_s != 0
+			&& iuliiaU32IsAlpha(*s) && iuliiaU32IsAlpha(next_s)) {
 
 			if(*(s+2) == 0 || !iuliiaU32IsAlpha(*(s+2))) {
 				repl = iuliiaBsearch2char(cur_s, next_s, scheme->ending_mapping, scheme->nof_ending_mapping);
