@@ -19,8 +19,8 @@ autotest1: autotest1.o iuliia.o
 autotest2: autotest2.o iuliia.o
 	$(CPP) autotest2.o iuliia.o -o autotest2
 
-iuliia-c: iuliia.o iuliia-c-frontend.o
-	$(CPP) iuliia-c-frontend.o iuliia.o -o iuliia-c
+iuliia-c: iuliia.o iuliia-c-cli.o
+	$(CPP) iuliia-c-cli.o iuliia.o -o iuliia-c
 	
 hello.o: ../hello.c
 	$(CC) $(CFLAGS) ../hello.c
@@ -40,8 +40,8 @@ autotest2.o: ../autotest2.c
 iuliia.o: ../iuliia.c
 	$(CC) $(CFLAGS) ../iuliia.c
 
-iuliia-c-frontend.o: ../iuliia-c-frontend.c
-	$(CC) $(CFLAGS) ../iuliia-c-frontend.c
+iuliia-c-cli.o: ../iuliia-c-cli.c
+	$(CC) $(CFLAGS) ../iuliia-c-cli.c
 	
 clean:
 	rm -f *.o hello hello2 helloa autotest1 iuliia-c

@@ -200,7 +200,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\iuliia-c-frontend.c" />
+    <ClCompile Include="..\..\..\iuliia-c-cli.c" />
     <ClCompile Include="..\..\..\iuliia.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

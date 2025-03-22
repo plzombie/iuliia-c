@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\iuliia-c-frontend.c">
+    <ClCompile Include="..\..\..\iuliia-c-cli.c">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\iuliia.c">

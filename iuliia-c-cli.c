@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 {
 	CHAR *scheme_filename = 0, *input_filename = 0, *output_filename = 0;
 	CHAR *original_text, *original_text_cursor, *translated_text = 0;
-	size_t buffer_cnt = DEFAULT_BUFFER_CNT, buffer_cnt_left;
+	int buffer_cnt = DEFAULT_BUFFER_CNT, buffer_cnt_left;
 	iuliia_scheme_t *scheme = 0;
 	FILE *f_input = 0, *f_output = 0;
 
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 				break;
 		if(STRLEN(original_text) == buffer_cnt-1) {
 			CHAR *_original_text = 0;
-			if((SIZE_MAX/sizeof(CHAR))/2 <= buffer_cnt) break;
+			if((INT_MAX/sizeof(CHAR))/2 <= buffer_cnt) break;
 
 			_original_text = realloc(original_text, sizeof(CHAR)*buffer_cnt*2);
 			if(!_original_text) break;
