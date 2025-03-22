@@ -818,7 +818,7 @@ static uint32_t *iuliiaBsearch2char(uint32_t c, uint32_t cor_c, const iuliia_map
 
 uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 {
-	uint32_t *new_s, prev_s = 0;
+	uint32_t *new_s, prev_s = 0, next_s = 0;
 	size_t new_len, new_offset = 0;
 
 	if(!scheme->mapping) return 0;
@@ -826,9 +826,13 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 	new_len = iuliiaU32len(s);
 	new_s = malloc((new_len+1)*sizeof(uint32_t));
 	if(!new_s) return 0;
+
+	if(*s) {
+		next_s = iuliiaU32ToLower(*s);
+	}
 	
 	while(*s) {
-		uint32_t *repl = 0, next_s, cur_s;
+		uint32_t *repl = 0, cur_s;
 		if(new_offset == new_len) {
 			uint32_t *_new_s = 0;
 
@@ -841,8 +845,8 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 			new_len += 4;
 		}
 		
+		cur_s = next_s;
 		next_s = iuliiaU32ToLower(*(s+1));
-		cur_s = iuliiaU32ToLower(*s);
 
 		// Check word ending
 		if(iuliiaU32IsAlpha(*s) && iuliiaU32IsAlpha(next_s)
@@ -850,7 +854,10 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 
 			if(*(s+2) == 0 || !iuliiaU32IsAlpha(*(s+2))) {
 				repl = iuliiaBsearch2char(cur_s, next_s, scheme->ending_mapping, scheme->nof_ending_mapping);
-				if(repl) s++;
+				if(repl) {
+					next_s = iuliiaU32ToLower(*(s+2));
+					s++;
+				}
 			}
 		}
 
