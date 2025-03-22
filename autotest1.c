@@ -44,6 +44,7 @@ const wchar_t *scheme_names[] = {
 		L"../forks/iuliia/scientific.json",
 		L"../forks/iuliia/telegram.json",
 		L"../forks/iuliia/ungegn_1987.json",
+		L"../forks/iuliia/uz.json",
 		L"../forks/iuliia/wikipedia.json",
 		L"../forks/iuliia/yandex_maps.json",
 		L"../forks/iuliia/yandex_money.json"
