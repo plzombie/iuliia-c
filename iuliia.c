@@ -819,7 +819,7 @@ static uint32_t *iuliiaBsearch2char(uint32_t c, uint32_t cor_c, const iuliia_map
 uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 {
 	uint32_t *new_s, prev_s = 0, next_s = 0;
-	size_t new_len, new_offset = 0;
+	size_t new_len, new_offset = 0, chars_to_add = 5;
 
 	if(!scheme->mapping) return 0;
 
@@ -836,13 +836,14 @@ uint32_t *iuliiaTranslateU32(const uint32_t *s, const iuliia_scheme_t *scheme)
 		if(new_offset == new_len) {
 			uint32_t *_new_s = 0;
 
-			if(SIZE_MAX/sizeof(uint32_t)-5 >= new_len) _new_s = realloc(new_s, (new_len+5)*sizeof(uint32_t));
+			if(SIZE_MAX/sizeof(uint32_t)-chars_to_add >= new_len) _new_s = realloc(new_s, (new_len+chars_to_add)*sizeof(uint32_t));
 			if(!_new_s) {
 				free(new_s);
 				return 0;
 			}
 			new_s = _new_s;
-			new_len += 4;
+			new_len += chars_to_add-1;
+			if((SIZE_MAX/sizeof(uint32_t)-1)/2 > chars_to_add) chars_to_add = (chars_to_add-1)*2+1;
 		}
 		
 		cur_s = next_s;
