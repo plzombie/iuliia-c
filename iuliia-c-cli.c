@@ -27,6 +27,7 @@ SOFTWARE.
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <locale.h>
 #include <limits.h>
 
@@ -139,12 +140,13 @@ int main(int argc, char **argv)
 	buffer_cnt_left = buffer_cnt;
 
 	while(!feof(f_input)) {
-		if(!FGETS(original_text_cursor, buffer_cnt_left, f_input))
+		if(!FGETS(original_text_cursor, buffer_cnt_left, f_input)) {
 			if(feof(f_input)) { 
 				*original_text_cursor = 0;
 				if(STRLEN(original_text) == 0) break;
 			} else 
 				break;
+		}
 		if(STRLEN(original_text) == buffer_cnt-1) {
 			CHAR *_original_text = 0;
 			if((INT_MAX/sizeof(CHAR))/2 <= buffer_cnt) break;

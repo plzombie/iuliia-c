@@ -44,4 +44,4 @@ iuliia-c-cli.o: ../iuliia-c-cli.c
 	$(CC) $(CFLAGS) ../iuliia-c-cli.c
 	
 clean:
-	rm -f *.o hello hello2 helloa autotest1 iuliia-c
+	rm -f *.o hello hello2 helloa autotest1 autotest2 iuliia-c
