@@ -47,8 +47,9 @@ SOFTWARE.
 #define PRINTF(t) wprintf(L##t);
 #define STDERR_PRINTF(t) fwprintf(stderr, L##t)
 #define FPUTS(t, f) fputws(t, f)
-#define FGETS(t, f) fgetws(t, 1024, f)
+#define FGETS(t, cnt, f) fgetws(t, cnt, f)
 #define FOPEN(f, a) _wfopen(f, L##a L", ccs=UTF-8")
+#define STRLEN(s) wcslen(s)
 #define CHAR wchar_t
 #else
 #define IULIIALOADSCHEME(f) iuliiaLoadSchemeA(f)
@@ -56,11 +57,14 @@ SOFTWARE.
 #define PRINTF(t) printf(t)
 #define STDERR_PRINTF(t) fprintf(stderr, t)
 #define FPUTS(t, f) fputs(t, f)
-#define FGETS(t, f) fgets(t, 1024, f)
+#define FGETS(t, cnt, f) fgets(t, cnt, f)
 #define FOPEN(f, a) fopen(f, a)
+#define STRLEN(s) strlen(s)
 #define CHAR char
 #define _ftelli64 ftello64
 #endif
+
+#define DEFAULT_BUFFER_CNT 1024
 
 #if defined(_WIN32)
 int wmain(int argc, wchar_t **argv)
@@ -69,7 +73,8 @@ int main(int argc, char **argv)
 #endif
 {
 	CHAR *scheme_filename = 0, *input_filename = 0, *output_filename = 0;
-	CHAR original_text[1024], *translated_text = 0;
+	CHAR *original_text, *original_text_cursor, *translated_text = 0;
+	size_t buffer_cnt = DEFAULT_BUFFER_CNT, buffer_cnt_left;
 	iuliia_scheme_t *scheme = 0;
 	FILE *f_input = 0, *f_output = 0;
 
@@ -121,8 +126,40 @@ int main(int argc, char **argv)
 	} else
 		f_output = stdout;
 
+	original_text = malloc(sizeof(CHAR)*buffer_cnt);
+	if(!original_text) {
+		iuliiaFreeScheme(scheme);
+		if(input_filename) fclose(f_input);
+		if(output_filename) fclose(f_output);
+
+		return EXIT_FAILURE;
+	}
+
+	original_text_cursor = original_text;
+	buffer_cnt_left = buffer_cnt;
+
 	while(!feof(f_input)) {
-		if(!FGETS(original_text, f_input)) break;
+		if(!FGETS(original_text_cursor, buffer_cnt_left, f_input))
+			if(feof(f_input)) { 
+				*original_text_cursor = 0;
+				if(STRLEN(original_text) == 0) break;
+			} else 
+				break;
+		if(STRLEN(original_text) == buffer_cnt-1) {
+			CHAR *_original_text = 0;
+			if((SIZE_MAX/sizeof(CHAR))/2 <= buffer_cnt) break;
+
+			_original_text = realloc(original_text, sizeof(CHAR)*buffer_cnt*2);
+			if(!_original_text) break;
+			original_text = _original_text;
+			original_text_cursor = original_text + buffer_cnt - 1;
+			buffer_cnt *= 2;
+			buffer_cnt_left = buffer_cnt/2+1;
+			continue;
+		} else {
+			original_text_cursor = original_text;
+			buffer_cnt_left = buffer_cnt;
+		}
 
 		translated_text = IULIIATRANSLATE(original_text, scheme);
 		if(!translated_text) {
@@ -140,6 +177,7 @@ int main(int argc, char **argv)
 	iuliiaFreeScheme(scheme);
 	if(input_filename) fclose(f_input);
 	if(output_filename) fclose(f_output);
+	if(original_text) free(original_text);
 
 #if defined(_DEBUG) && defined(USE_STB_LEAKCHECK)
 #ifdef _MSC_VER
